@@ -14,7 +14,7 @@ java {
 
 android {
     compileSdk = 35
-    buildToolsVersion = "35.0.0"
+    buildToolsVersion = "36.0.0"
 
     namespace = "com.android.messaging"
 
