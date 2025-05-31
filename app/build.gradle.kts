@@ -96,6 +96,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.google.guava:guava:33.4.0-android")
     implementation("com.googlecode.libphonenumber:libphonenumber:8.13.52")
+    implementation("com.google.code.findbugs:jsr305:3.0.2")
 
     implementation(project(":lib:platform_frameworks_opt_chips"))
     implementation(project(":lib:platform_frameworks_opt_photoviewer"))
