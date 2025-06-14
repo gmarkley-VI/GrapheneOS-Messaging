@@ -16,10 +16,9 @@
 
 package com.android.messaging.ui.conversationsettings;
 
+import android.app.Fragment;
 import android.os.Bundle;
 import android.view.MenuItem;
-
-import androidx.fragment.app.Fragment;
 
 import com.android.messaging.R;
 import com.android.messaging.ui.BugleActionBarActivity;

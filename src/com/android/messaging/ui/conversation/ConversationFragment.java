@@ -19,6 +19,9 @@ package com.android.messaging.ui.conversation;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -99,10 +102,6 @@ import java.util.List;
 import androidx.appcompat.app.ActionBar;
 import androidx.core.text.BidiFormatter;
 import androidx.core.text.TextDirectionHeuristicsCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.loader.app.LoaderManager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -447,7 +446,7 @@ public class ConversationFragment extends Fragment implements ConversationDataLi
         // Delay showing the message list until the participant list is loaded.
         mRecyclerView.setVisibility(View.INVISIBLE);
         mBinding.ensureBound();
-        mBinding.getData().init(LoaderManager.getInstance(this), mBinding);
+        mBinding.getData().init(getLoaderManager(), mBinding);
 
         // Build the input manager with all its required dependencies and pass it along to the
         // compose message view.
@@ -1213,10 +1212,10 @@ public class ConversationFragment extends Fragment implements ConversationDataLi
     public void promptForSelfPhoneNumber() {
         if (mComposeMessageView != null) {
             // Avoid bug in system which puts soft keyboard over dialog after orientation change
-            ImeUtil.hideSoftInput(requireActivity(), mComposeMessageView);
+            ImeUtil.hideSoftInput(getActivity(), mComposeMessageView);
         }
 
-        final FragmentTransaction ft = requireActivity().getSupportFragmentManager().beginTransaction();
+        final FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
         final EnterSelfPhoneNumberDialog dialog = EnterSelfPhoneNumberDialog
                 .newInstance(getConversationSelfSubId());
         dialog.setTargetFragment(this, 0/*requestCode*/);

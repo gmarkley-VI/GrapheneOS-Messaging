@@ -17,6 +17,7 @@ package com.android.messaging.ui.conversationlist;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -49,7 +50,6 @@ import java.util.Collection;
 import java.util.List;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
 /**
  * Base class for many Conversation List activities. This will handle the common actions of multi

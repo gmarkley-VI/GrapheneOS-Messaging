@@ -16,9 +16,8 @@
 
 package com.android.messaging.ui;
 
+import android.app.Fragment;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import android.view.View;
 import android.view.WindowManager;
@@ -63,12 +62,11 @@ public class TestActivity extends FragmentActivity {
     @VisibleForTesting
     public void setFragment(final Fragment fragment) {
         LogUtil.i(LogUtil.BUGLE_TAG, "TestActivity.setFragment");
-        var fragmentManager = getSupportFragmentManager();
-        fragmentManager
+        getFragmentManager()
                 .beginTransaction()
                 .replace(R.id.test_content, fragment)
                 .commit();
-        fragmentManager.executePendingTransactions();
+        getFragmentManager().executePendingTransactions();
     }
 
     @VisibleForTesting

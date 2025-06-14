@@ -16,9 +16,8 @@
 
 package com.android.messaging.ui.attachmentchooser;
 
+import android.app.Fragment;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
 
 import com.android.messaging.R;
 import com.android.messaging.ui.BugleActionBarActivity;

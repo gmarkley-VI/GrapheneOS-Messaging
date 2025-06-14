@@ -16,12 +16,10 @@
 
 package com.android.messaging.ui.appsettings;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import androidx.core.app.NavUtils;
-import androidx.fragment.app.Fragment;
-import androidx.loader.app.LoaderManager;
-
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -66,7 +64,7 @@ public class SettingsActivity extends BugleActionBarActivity {
             UIIntents.get().launchApplicationSettingsActivity(this, true /* topLevel */);
             finish();
         } else {
-            getSupportFragmentManager().beginTransaction()
+            getFragmentManager().beginTransaction()
                     .replace(android.R.id.content, new SettingsFragment())
                     .commit();
         }
@@ -91,7 +89,7 @@ public class SettingsActivity extends BugleActionBarActivity {
         public void onCreate(final Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             mBinding.bind(DataModel.get().createSettingsData(getActivity(), this));
-            mBinding.getData().init(LoaderManager.getInstance(this), mBinding);
+            mBinding.getData().init(getLoaderManager(), mBinding);
         }
 
         @Override

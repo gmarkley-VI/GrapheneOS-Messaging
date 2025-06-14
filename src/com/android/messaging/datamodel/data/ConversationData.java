@@ -16,7 +16,9 @@
 
 package com.android.messaging.datamodel.data;
 
+import android.app.LoaderManager;
 import android.content.Context;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.CursorWrapper;
 import android.net.Uri;
@@ -55,8 +57,6 @@ import java.util.List;
 import java.util.Set;
 
 import androidx.annotation.Nullable;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
 
 public class ConversationData extends BindableData {
 

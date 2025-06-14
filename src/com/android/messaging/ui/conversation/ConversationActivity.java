@@ -16,6 +16,8 @@
 
 package com.android.messaging.ui.conversation;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -39,8 +41,6 @@ import com.android.messaging.util.LogUtil;
 import com.android.messaging.util.UiUtils;
 
 import androidx.appcompat.app.ActionBar;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 public class ConversationActivity extends BugleActionBarActivity
         implements ContactPickerFragmentHost, ConversationFragmentHost,
@@ -230,12 +230,12 @@ public class ConversationActivity extends BugleActionBarActivity
     }
 
     private ContactPickerFragment getContactPicker() {
-        return (ContactPickerFragment) getSupportFragmentManager().findFragmentByTag(
+        return (ContactPickerFragment) getFragmentManager().findFragmentByTag(
                 ContactPickerFragment.FRAGMENT_TAG);
     }
 
     private ConversationFragment getConversationFragment() {
-        return (ConversationFragment) getSupportFragmentManager().findFragmentByTag(
+        return (ConversationFragment) getFragmentManager().findFragmentByTag(
                 ConversationFragment.FRAGMENT_TAG);
     }
 
@@ -299,7 +299,7 @@ public class ConversationActivity extends BugleActionBarActivity
         final Intent intent = getIntent();
         final String conversationId = mUiState.getConversationId();
 
-        final FragmentManager fragmentManager = getSupportFragmentManager();
+        final FragmentManager fragmentManager = getFragmentManager();
         final FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         final boolean needConversationFragment = mUiState.shouldShowConversationFragment();

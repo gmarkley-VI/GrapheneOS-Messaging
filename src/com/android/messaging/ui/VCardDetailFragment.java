@@ -15,6 +15,7 @@
  */
 package com.android.messaging.ui;
 
+import android.app.Fragment;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
@@ -29,8 +30,6 @@ import android.view.ViewGroup;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnChildClickListener;
-
-import androidx.fragment.app.Fragment;
 
 import com.android.messaging.R;
 import com.android.messaging.datamodel.DataModel;

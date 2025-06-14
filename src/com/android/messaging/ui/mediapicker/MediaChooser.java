@@ -16,6 +16,7 @@
 
 package com.android.messaging.ui.mediapicker;
 
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -34,7 +35,6 @@ import com.android.messaging.ui.BasePagerViewHolder;
 import com.android.messaging.util.Assert;
 
 import androidx.appcompat.app.ActionBar;
-import androidx.fragment.app.FragmentManager;
 
 abstract class MediaChooser extends BasePagerViewHolder
         implements DraftMessageSubscriptionDataProvider {

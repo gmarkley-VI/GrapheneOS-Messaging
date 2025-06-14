@@ -16,9 +16,8 @@
 
 package com.android.messaging.ui;
 
+import android.app.FragmentTransaction;
 import android.os.Bundle;
-
-import androidx.fragment.app.FragmentTransaction;
 
 /**
  * Activity to contain the dialog of warning sms storage low.
@@ -28,7 +27,7 @@ public class SmsStorageLowWarningActivity extends BaseBugleFragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        FragmentTransaction ft = getFragmentManager().beginTransaction();
         SmsStorageLowWarningFragment fragment =
                 SmsStorageLowWarningFragment.newInstance();
         ft.add(fragment, null/*tag*/);

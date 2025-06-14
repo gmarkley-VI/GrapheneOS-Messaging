@@ -15,11 +15,10 @@
  */
 package com.android.messaging.ui.conversation;
 
+import android.app.FragmentManager;
 import android.content.Context;
 import android.os.Bundle;
 import androidx.appcompat.app.ActionBar;
-import androidx.fragment.app.FragmentManager;
-
 import android.widget.EditText;
 
 import com.android.messaging.R;

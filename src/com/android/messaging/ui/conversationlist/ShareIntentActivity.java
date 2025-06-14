@@ -16,6 +16,7 @@
 
 package com.android.messaging.ui.conversationlist;
 
+import android.app.Fragment;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.media.MediaMetadataRetriever;
@@ -24,7 +25,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 
 import androidx.collection.ArrayMap;
-import androidx.fragment.app.Fragment;
 
 import com.android.messaging.Factory;
 import com.android.messaging.datamodel.data.ConversationListItemData;
@@ -74,7 +74,7 @@ public class ShareIntentActivity extends BaseBugleActivity implements
             finish();
             return;
         }
-        new ShareIntentFragment().show(getSupportFragmentManager(), "ShareIntentFragment");
+        new ShareIntentFragment().show(getFragmentManager(), "ShareIntentFragment");
     }
 
     @Override

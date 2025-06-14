@@ -16,6 +16,7 @@
 package com.android.messaging.ui.conversationlist;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Rect;
@@ -24,8 +25,6 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.ViewGroupCompat;
-import androidx.fragment.app.Fragment;
-import androidx.loader.app.LoaderManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -126,7 +125,7 @@ public class ConversationListFragment extends Fragment implements ConversationLi
     @Override
     public void onCreate(final Bundle bundle) {
         super.onCreate(bundle);
-        mListBinding.getData().init(LoaderManager.getInstance(this), mListBinding);
+        mListBinding.getData().init(getLoaderManager(), mListBinding);
         mAdapter = new ConversationListAdapter(getActivity(), null, this);
     }
 

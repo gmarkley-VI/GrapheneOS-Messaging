@@ -15,6 +15,7 @@
  */
 package com.android.messaging.ui.debug;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
@@ -28,8 +29,6 @@ import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
-
-import androidx.fragment.app.Fragment;
 
 import com.android.messaging.R;
 import com.android.messaging.sms.MmsConfig;

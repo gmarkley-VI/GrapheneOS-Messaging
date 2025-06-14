@@ -16,9 +16,8 @@
 
 package com.android.messaging.ui;
 
+import android.app.Activity;
 import android.os.Bundle;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.messaging.util.BugleActivityUtil;
 import com.android.messaging.util.LogUtil;
@@ -28,7 +27,7 @@ import com.android.messaging.util.UiUtils;
  * Base class for app activities that would normally derive from Activity. Responsible for
  * ensuring app requirements are met during onResume()
  */
-public class BaseBugleActivity extends AppCompatActivity {
+public class BaseBugleActivity extends Activity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
