@@ -38,6 +38,7 @@ import com.android.messaging.Factory;
 import com.android.messaging.R;
 import com.android.messaging.annotation.VisibleForAnimation;
 import com.android.messaging.datamodel.MessagingContentProvider;
+import com.android.messaging.datamodel.action.DeleteConversationAction;
 import com.android.messaging.datamodel.action.UpdateConversationArchiveStatusAction;
 import com.android.messaging.datamodel.data.ConversationListItemData;
 import com.android.messaging.datamodel.data.MessageData;
@@ -68,6 +69,11 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         OnLongClickListener, OnLayoutChangeListener {
     static final int UNREAD_SNIPPET_LINE_COUNT = 3;
     static final int NO_UNREAD_SNIPPET_LINE_COUNT = 1;
+    
+    // Swipe direction constants
+    private static final int SWIPE_DIRECTION_NONE = 0;
+    private static final int SWIPE_DIRECTION_LEFT = 1;
+    private static final int SWIPE_DIRECTION_RIGHT = 2;
     private int mListItemReadColor;
     private int mListItemUnreadColor;
     private Typeface mListItemReadTypeface;
@@ -523,30 +529,46 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         } else {
             mCrossSwipeBackground.setVisibility(View.VISIBLE);
             if (translationX > 0) {
+                // Swiping right - show delete icon on left with red background
                 mCrossSwipeArchiveLeftImageView.setVisibility(VISIBLE);
+                mCrossSwipeArchiveLeftImageView.setImageResource(R.drawable.ic_delete_small_dark);
                 mCrossSwipeArchiveRightImageView.setVisibility(GONE);
+                mCrossSwipeBackground.setBackgroundColor(getResources().getColor(R.color.swipe_delete_background));
             } else {
+                // Swiping left - show archive icon on right with default background
                 mCrossSwipeArchiveLeftImageView.setVisibility(GONE);
                 mCrossSwipeArchiveRightImageView.setVisibility(VISIBLE);
+                mCrossSwipeArchiveRightImageView.setImageResource(R.drawable.ic_archive_small_dark);
+                mCrossSwipeBackground.setBackgroundResource(R.drawable.swipe_shadow);
             }
             mSwipeableContainer.setBackgroundResource(R.drawable.swipe_shadow_drag);
         }
     }
 
-    public void onSwipeComplete() {
+    public void onSwipeComplete(int swipeDirection) {
         final String conversationId = mData.getConversationId();
-        UpdateConversationArchiveStatusAction.archiveConversation(conversationId);
-
-        final Runnable undoRunnable = new Runnable() {
-            @Override
-            public void run() {
-                UpdateConversationArchiveStatusAction.unarchiveConversation(conversationId);
-            }
-        };
-        final String message = getResources().getString(R.string.archived_toast_message, 1);
-        UiUtils.showSnackBar(getContext(), getRootView(), message, undoRunnable,
-                SnackBar.Action.SNACK_BAR_UNDO,
-                mHostInterface.getSnackBarInteractions());
+        
+        if (swipeDirection == SWIPE_DIRECTION_RIGHT) {
+            // Delete conversation
+            DeleteConversationAction.deleteConversation(conversationId, Long.MAX_VALUE);
+            final String message = getResources().getString(R.string.deleted_toast_message, 1);
+            UiUtils.showSnackBar(getContext(), getRootView(), message, null,
+                    SnackBar.Action.SNACK_BAR_NONE,
+                    mHostInterface.getSnackBarInteractions());
+        } else if (swipeDirection == SWIPE_DIRECTION_LEFT) {
+            // Archive conversation
+            UpdateConversationArchiveStatusAction.archiveConversation(conversationId);
+            final Runnable undoRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    UpdateConversationArchiveStatusAction.unarchiveConversation(conversationId);
+                }
+            };
+            final String message = getResources().getString(R.string.archived_toast_message, 1);
+            UiUtils.showSnackBar(getContext(), getRootView(), message, undoRunnable,
+                    SnackBar.Action.SNACK_BAR_UNDO,
+                    mHostInterface.getSnackBarInteractions());
+        }
     }
 
     private void setShortAndLongClickable(final boolean clickable) {
