@@ -16,3 +16,4 @@
 keystore.properties
 *.keystore
 local.properties
+.research
