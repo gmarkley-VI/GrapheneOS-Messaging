@@ -42,6 +42,13 @@
         android:defaultValue="@bool/send_sound_pref_default"
         android:persistent="true" />
 
+    <SwitchPreference
+        android:key="@string/swipe_right_delete_pref_key"
+        android:title="@string/swipe_right_delete_pref_title"
+        android:summary="@string/swipe_right_delete_pref_summary"
+        android:defaultValue="@bool/swipe_right_delete_pref_default"
+        android:persistent="true" />
+
     <PreferenceScreen
         android:key="@string/notifications_category_pref_key"
         android:title="@string/notifications_enabled_conversation_pref_title"

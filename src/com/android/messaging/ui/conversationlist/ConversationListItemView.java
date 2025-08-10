@@ -54,6 +54,7 @@ import com.android.messaging.util.ContentType;
 import com.android.messaging.util.ImageUtils;
 import com.android.messaging.util.PhoneUtils;
 import com.android.messaging.util.Typefaces;
+import com.android.messaging.util.BuglePrefs;
 import com.android.messaging.util.UiUtils;
 import com.android.messaging.util.UriUtil;
 
@@ -74,6 +75,10 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
     private static final int SWIPE_DIRECTION_NONE = 0;
     private static final int SWIPE_DIRECTION_LEFT = 1;
     private static final int SWIPE_DIRECTION_RIGHT = 2;
+    
+    // Cache the swipe to delete preference
+    private boolean mSwipeRightToDeleteEnabled;
+    
     private int mListItemReadColor;
     private int mListItemUnreadColor;
     private Typeface mListItemReadTypeface;
@@ -375,6 +380,12 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         mSwipeableContainer.setOnLongClickListener(this);
 
         final Resources resources = getContext().getResources();
+        
+        // Cache the swipe to delete preference value
+        final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
+        mSwipeRightToDeleteEnabled = prefs.getBoolean(
+                resources.getString(R.string.swipe_right_delete_pref_key),
+                resources.getBoolean(R.bool.swipe_right_delete_pref_default));
 
         int color;
         final int maxLines;
@@ -529,13 +540,21 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         } else {
             mCrossSwipeBackground.setVisibility(View.VISIBLE);
             if (translationX > 0) {
-                // Swiping right - show delete icon on left with red background
+                // Swiping right
                 mCrossSwipeArchiveLeftImageView.setVisibility(VISIBLE);
-                mCrossSwipeArchiveLeftImageView.setImageResource(R.drawable.ic_delete_small_dark);
                 mCrossSwipeArchiveRightImageView.setVisibility(GONE);
-                mCrossSwipeBackground.setBackgroundColor(getResources().getColor(R.color.swipe_delete_background));
+                
+                if (mSwipeRightToDeleteEnabled) {
+                    // Show delete icon with red background
+                    mCrossSwipeArchiveLeftImageView.setImageResource(R.drawable.ic_delete_small_dark);
+                    mCrossSwipeBackground.setBackgroundColor(getResources().getColor(R.color.swipe_delete_background));
+                } else {
+                    // Show archive icon with default background
+                    mCrossSwipeArchiveLeftImageView.setImageResource(R.drawable.ic_archive_small_dark);
+                    mCrossSwipeBackground.setBackgroundResource(R.drawable.swipe_shadow);
+                }
             } else {
-                // Swiping left - show archive icon on right with default background
+                // Swiping left - always archive
                 mCrossSwipeArchiveLeftImageView.setVisibility(GONE);
                 mCrossSwipeArchiveRightImageView.setVisibility(VISIBLE);
                 mCrossSwipeArchiveRightImageView.setImageResource(R.drawable.ic_archive_small_dark);
@@ -549,26 +568,35 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         final String conversationId = mData.getConversationId();
         
         if (swipeDirection == SWIPE_DIRECTION_RIGHT) {
-            // Delete conversation
-            DeleteConversationAction.deleteConversation(conversationId, Long.MAX_VALUE);
-            final String message = getResources().getString(R.string.deleted_toast_message, 1);
-            UiUtils.showSnackBar(getContext(), getRootView(), message, null,
-                    SnackBar.Action.SNACK_BAR_NONE,
-                    mHostInterface.getSnackBarInteractions());
+            if (mSwipeRightToDeleteEnabled) {
+                // Delete conversation
+                DeleteConversationAction.deleteConversation(conversationId, Long.MAX_VALUE);
+                final String message = getResources().getString(R.string.deleted_toast_message, 1);
+                UiUtils.showSnackBar(getContext(), getRootView(), message, null,
+                        SnackBar.Action.SNACK_BAR_NONE,
+                        mHostInterface.getSnackBarInteractions());
+            } else {
+                // Archive conversation (default behavior)
+                archiveConversation(conversationId);
+            }
         } else if (swipeDirection == SWIPE_DIRECTION_LEFT) {
             // Archive conversation
-            UpdateConversationArchiveStatusAction.archiveConversation(conversationId);
-            final Runnable undoRunnable = new Runnable() {
-                @Override
-                public void run() {
-                    UpdateConversationArchiveStatusAction.unarchiveConversation(conversationId);
-                }
-            };
-            final String message = getResources().getString(R.string.archived_toast_message, 1);
-            UiUtils.showSnackBar(getContext(), getRootView(), message, undoRunnable,
-                    SnackBar.Action.SNACK_BAR_UNDO,
-                    mHostInterface.getSnackBarInteractions());
+            archiveConversation(conversationId);
         }
+    }
+    
+    private void archiveConversation(String conversationId) {
+        UpdateConversationArchiveStatusAction.archiveConversation(conversationId);
+        final Runnable undoRunnable = new Runnable() {
+            @Override
+            public void run() {
+                UpdateConversationArchiveStatusAction.unarchiveConversation(conversationId);
+            }
+        };
+        final String message = getResources().getString(R.string.archived_toast_message, 1);
+        UiUtils.showSnackBar(getContext(), getRootView(), message, undoRunnable,
+                SnackBar.Action.SNACK_BAR_UNDO,
+                mHostInterface.getSnackBarInteractions());
     }
 
     private void setShortAndLongClickable(final boolean clickable) {
