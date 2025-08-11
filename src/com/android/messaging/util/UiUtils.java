@@ -135,12 +135,11 @@ public class UiUtils {
     public static void showSnackBarWithCustomAction(final Context context,
             @NonNull final View parentView,
             @NonNull final String message,
-            @NonNull final SnackBar.Action action,
+            @Nullable final SnackBar.Action action,
             @Nullable final List<SnackBarInteraction> interactions,
             @Nullable final Placement placement) {
         Assert.notNull(context);
         Assert.isTrue(!TextUtils.isEmpty(message));
-        Assert.notNull(action);
         SnackBarManager.get()
             .newBuilder(parentView)
             .setText(message)
