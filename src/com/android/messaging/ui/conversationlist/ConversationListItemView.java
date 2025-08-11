@@ -573,7 +573,7 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
                 DeleteConversationAction.deleteConversation(conversationId, Long.MAX_VALUE);
                 final String message = getResources().getString(R.string.deleted_toast_message, 1);
                 UiUtils.showSnackBar(getContext(), getRootView(), message, null,
-                        SnackBar.Action.SNACK_BAR_NONE,
+                        -1,
                         mHostInterface.getSnackBarInteractions());
             } else {
                 // Archive conversation (default behavior)
