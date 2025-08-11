@@ -18,3 +18,8 @@ jobs:
           cache: gradle
       - name: Build with Gradle
         run: ./gradlew build --no-daemon
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-apk
+          path: app/build/outputs/apk/debug/*.apk
