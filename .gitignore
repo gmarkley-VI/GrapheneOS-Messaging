@@ -18,3 +18,4 @@ keystore.properties
 local.properties
 .research
 CLAUDE.md
+.github/workflows/.build.yml.swp
