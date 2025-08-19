@@ -49,6 +49,7 @@ import com.android.messaging.datamodel.binding.BindingBase;
 import com.android.messaging.datamodel.data.ConversationListData;
 import com.android.messaging.datamodel.data.ConversationListData.ConversationListDataListener;
 import com.android.messaging.datamodel.data.ConversationListItemData;
+import com.android.messaging.datamodel.data.DeletedConversationListData;
 import com.android.messaging.ui.BugleAnimationTags;
 import com.android.messaging.ui.ListEmptyView;
 import com.android.messaging.ui.SnackBarInteraction;
@@ -262,8 +263,11 @@ public class ConversationListFragment extends Fragment implements ConversationLi
             mDeletedMode = arguments.getBoolean(BUNDLE_DELETED_MODE, false);
             mForwardMessageMode = arguments.getBoolean(BUNDLE_FORWARD_MESSAGE_MODE, false);
         }
-        // For now, use mDeletedMode similar to mArchiveMode until we implement deleted mode in DataModel
-        mListBinding.bind(DataModel.get().createConversationListData(activity, this, mArchiveMode || mDeletedMode));
+        if (mDeletedMode) {
+            mListBinding.bind(new DeletedConversationListData(activity, this));
+        } else {
+            mListBinding.bind(DataModel.get().createConversationListData(activity, this, mArchiveMode));
+        }
     }
 
 

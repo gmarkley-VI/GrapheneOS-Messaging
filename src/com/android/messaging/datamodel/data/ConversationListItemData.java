@@ -65,6 +65,7 @@ public class ConversationListItemData {
     private String mDraftPreviewContentType;
     private String mDraftSnippetText;
     private boolean mIsArchived;
+    private boolean mIsDeleted;
     private String mSubject;
     private String mDraftSubject;
     private String mSnippetSenderFirstName;
@@ -127,6 +128,7 @@ public class ConversationListItemData {
         }
 
         mIsArchived = cursor.getInt(INDEX_ARCHIVE_STATUS) == 1;
+        mIsDeleted = cursor.getInt(INDEX_DELETED_STATUS) == 1;
         mSubject = cursor.getString(INDEX_SUBJECT_TEXT);
         mSnippetSenderFirstName = cursor.getString(INDEX_SNIPPET_SENDER_FIRST_NAME);
         mSnippetSenderDisplayDestination =
@@ -269,6 +271,10 @@ public class ConversationListItemData {
         return mIsArchived;
     }
 
+    public boolean getIsDeleted() {
+        return mIsDeleted;
+    }
+
     public String getSubject() {
         return mSubject;
     }
@@ -389,6 +395,7 @@ public class ConversationListItemData {
         public static final String _ID = ConversationColumns._ID;
         static final String NAME = ConversationColumns.NAME;
         static final String ARCHIVE_STATUS = ConversationColumns.ARCHIVE_STATUS;
+        static final String DELETED_STATUS = ConversationColumns.DELETED_STATUS;
         static final String READ = MessageColumns.READ;
         static final String SORT_TIMESTAMP = ConversationColumns.SORT_TIMESTAMP;
         static final String PREVIEW_URI = ConversationColumns.PREVIEW_URI;
@@ -446,6 +453,7 @@ public class ConversationListItemData {
         ConversationListViewColumns.DRAFT_PREVIEW_CONTENT_TYPE,
         ConversationListViewColumns.DRAFT_SNIPPET_TEXT,
         ConversationListViewColumns.ARCHIVE_STATUS,
+        ConversationListViewColumns.DELETED_STATUS,
         ConversationListViewColumns.MESSAGE_ID,
         ConversationListViewColumns.SUBJECT_TEXT,
         ConversationListViewColumns.DRAFT_SUBJECT_TEXT,
@@ -478,13 +486,14 @@ public class ConversationListItemData {
     private static final int INDEX_DRAFT_PREVIEW_CONTENT_TYPE = 20;
     private static final int INDEX_DRAFT_SNIPPET_TEXT = 21;
     private static final int INDEX_ARCHIVE_STATUS = 22;
-    private static final int INDEX_MESSAGE_ID = 23;
-    private static final int INDEX_SUBJECT_TEXT = 24;
-    private static final int INDEX_DRAFT_SUBJECT_TEXT = 25;
-    private static final int INDEX_MESSAGE_RAW_TELEPHONY_STATUS = 26;
-    private static final int INDEX_SNIPPET_SENDER_FIRST_NAME = 27;
-    private static final int INDEX_SNIPPET_SENDER_DISPLAY_DESTINATION = 28;
-    private static final int INDEX_IS_ENTERPRISE = 29;
+    private static final int INDEX_DELETED_STATUS = 23;
+    private static final int INDEX_MESSAGE_ID = 24;
+    private static final int INDEX_SUBJECT_TEXT = 25;
+    private static final int INDEX_DRAFT_SUBJECT_TEXT = 26;
+    private static final int INDEX_MESSAGE_RAW_TELEPHONY_STATUS = 27;
+    private static final int INDEX_SNIPPET_SENDER_FIRST_NAME = 28;
+    private static final int INDEX_SNIPPET_SENDER_DISPLAY_DESTINATION = 29;
+    private static final int INDEX_IS_ENTERPRISE = 30;
 
     private static final String DIVIDER_TEXT = ", ";
 

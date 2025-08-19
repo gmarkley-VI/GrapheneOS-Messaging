@@ -108,6 +108,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         /* If this conversation is archived */
         public static final String ARCHIVE_STATUS = "archive_status";
 
+        /* If this conversation is deleted */
+        public static final String DELETED_STATUS = "deleted_status";
+
         /* Timestamp for sorting purposes */
         public static final String SORT_TIMESTAMP = "sort_timestamp";
 
@@ -175,6 +178,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + ConversationColumns.DRAFT_PREVIEW_URI + " TEXT, "
                     + ConversationColumns.DRAFT_PREVIEW_CONTENT_TYPE + " TEXT, "
                     + ConversationColumns.ARCHIVE_STATUS + " INT DEFAULT(0), "
+                    + ConversationColumns.DELETED_STATUS + " INT DEFAULT(0), "
                     + ConversationColumns.SORT_TIMESTAMP + " INT DEFAULT(0), "
                     + ConversationColumns.LAST_READ_TIMESTAMP + " INT DEFAULT(0), "
                     + ConversationColumns.ICON + " TEXT, "
@@ -201,6 +205,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             "CREATE INDEX index_" + CONVERSATIONS_TABLE + "_" + ConversationColumns.ARCHIVE_STATUS
             + " ON " +  CONVERSATIONS_TABLE
             + "(" + ConversationColumns.ARCHIVE_STATUS + ")";
+
+    private static final String CONVERSATIONS_TABLE_DELETED_STATUS_INDEX_SQL =
+            "CREATE INDEX index_" + CONVERSATIONS_TABLE + "_" + ConversationColumns.DELETED_STATUS
+            + " ON " +  CONVERSATIONS_TABLE
+            + "(" + ConversationColumns.DELETED_STATUS + ")";
 
     private static final String CONVERSATIONS_TABLE_SORT_TIMESTAMP_INDEX_SQL =
             "CREATE INDEX index_" + CONVERSATIONS_TABLE + "_" + ConversationColumns.SORT_TIMESTAMP
@@ -544,6 +553,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String[] CREATE_INDEX_SQLS = new String[] {
         CONVERSATIONS_TABLE_SMS_THREAD_ID_INDEX_SQL,
         CONVERSATIONS_TABLE_ARCHIVE_STATUS_INDEX_SQL,
+        CONVERSATIONS_TABLE_DELETED_STATUS_INDEX_SQL,
         CONVERSATIONS_TABLE_SORT_TIMESTAMP_INDEX_SQL,
         MESSAGES_TABLE_SORT_INDEX_SQL,
         MESSAGES_TABLE_STATUS_SEEN_INDEX_SQL,

@@ -47,8 +47,11 @@ public class ConversationListData extends BindableData {
 
     private static final String WHERE_ARCHIVED =
             "(" + ConversationListViewColumns.ARCHIVE_STATUS + " = 1)";
+    private static final String WHERE_DELETED =
+            "(" + ConversationListViewColumns.DELETED_STATUS + " = 1)";
     public static final String WHERE_NOT_ARCHIVED =
-            "(" + ConversationListViewColumns.ARCHIVE_STATUS + " = 0)";
+            "(" + ConversationListViewColumns.ARCHIVE_STATUS + " = 0 AND " +
+            ConversationListViewColumns.DELETED_STATUS + " = 0)";
 
     public interface ConversationListDataListener {
         public void onConversationListCursorUpdated(ConversationListData data, Cursor cursor);
@@ -65,6 +68,10 @@ public class ConversationListData extends BindableData {
         mListener = listener;
         mContext = context;
         mArchivedMode = archivedMode;
+    }
+    
+    protected String getConversationListWhereClause() {
+        return mArchivedMode ? WHERE_ARCHIVED : WHERE_NOT_ARCHIVED;
     }
 
     private static final int CONVERSATION_LIST_LOADER = 1;
@@ -98,7 +105,7 @@ public class ConversationListData extends BindableData {
                         loader = new BoundCursorLoader(bindingId, mContext,
                                 MessagingContentProvider.CONVERSATIONS_URI,
                                 ConversationListItemData.PROJECTION,
-                                mArchivedMode ? WHERE_ARCHIVED : WHERE_NOT_ARCHIVED,
+                                getConversationListWhereClause(),
                                 null,       // selection args
                                 SORT_ORDER);
                         break;
