@@ -54,6 +54,7 @@ import com.android.messaging.ui.conversation.ConversationActivity;
 import com.android.messaging.ui.conversation.LaunchConversationActivity;
 import com.android.messaging.ui.conversationlist.ArchivedConversationListActivity;
 import com.android.messaging.ui.conversationlist.ConversationListActivity;
+import com.android.messaging.ui.conversationlist.DeletedConversationListActivity;
 import com.android.messaging.ui.conversationlist.ForwardMessageActivity;
 import com.android.messaging.ui.conversationsettings.PeopleAndOptionsActivity;
 import com.android.messaging.ui.debug.DebugMmsConfigActivity;
@@ -224,6 +225,12 @@ public class UIIntentsImpl extends UIIntents {
     @Override
     public void launchArchivedConversationsActivity(final Context context) {
         final Intent intent = new Intent(context, ArchivedConversationListActivity.class);
+        context.startActivity(intent);
+    }
+
+    @Override
+    public void launchDeletedConversationsActivity(final Context context) {
+        final Intent intent = new Intent(context, DeletedConversationListActivity.class);
         context.startActivity(intent);
     }
 

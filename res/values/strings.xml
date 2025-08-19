@@ -251,6 +251,7 @@
     <string name="back">Back</string>
     <!-- Action menu title for showing archived conversations -->
     <string name="action_menu_show_archived">Archived</string>
+    <string name="action_menu_show_deleted">Deleted</string>
     <!-- Action menu title for deleting selected conversations in conversation list -->
     <string name="action_delete">Delete</string>
     <!-- Action menu title for archiving selected conversations in conversation list -->
@@ -442,6 +443,7 @@
     <string name="settings_activity_title">Settings</string>
     <!-- Title for the archived conversations activity -->
     <string name="archived_activity_title">Archived</string>
+    <string name="deleted_activity_title">Deleted</string>
     <!-- Action title: Close -->
     <string name="action_close">Close</string>
     <!-- Preference category: MMS messaging -->
@@ -705,6 +707,7 @@
     <string name="conversation_list_empty_text">Once you start a new conversation, you’ll see it listed here</string>
     <!-- String to show in the archived conversation list view when there are no messages. -->
     <string name="archived_conversation_list_empty_text">Archived conversations appear here</string>
+    <string name="deleted_conversation_list_empty_text">Deleted conversations appear here</string>
     <!-- String to show in the conversation list view when we haven't synchronized the SMS database yet -->
     <string name="conversation_list_first_sync_text">Loading conversations&#8230;</string>
 

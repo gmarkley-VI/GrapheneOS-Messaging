@@ -202,6 +202,11 @@ public abstract class UIIntents {
     public abstract void launchArchivedConversationsActivity(final Context context);
 
     /**
+     * Launch an activity to show deleted conversations.
+     */
+    public abstract void launchDeletedConversationsActivity(final Context context);
+
+    /**
      * Launch an activity to show blocked participants.
      */
     public abstract void launchBlockedParticipantsActivity(final Context context);

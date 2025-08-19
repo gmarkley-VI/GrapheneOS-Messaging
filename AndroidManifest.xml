@@ -124,6 +124,18 @@
                 android:value="com.android.messaging.ui.conversationlist.ConversationListActivity" />
         </activity>
 
+        <activity
+            android:name=".ui.conversationlist.DeletedConversationListActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="user"
+            android:label="@string/deleted_activity_title"
+            android:theme="@style/BugleTheme.ArchivedConversationListActivity"
+            android:parentActivityName="com.android.messaging.ui.conversationlist.ConversationListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.android.messaging.ui.conversationlist.ConversationListActivity" />
+        </activity>
+
         <!-- Displays the contents of a single conversation -->
         <activity
             android:name=".ui.conversation.ConversationActivity"
