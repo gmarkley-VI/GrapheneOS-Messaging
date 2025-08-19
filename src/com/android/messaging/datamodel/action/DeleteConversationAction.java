@@ -140,6 +140,7 @@ public class DeleteConversationAction extends Action implements Parcelable {
             BugleActionToasts.onFailedToDeleteConversations(failCount);
         }
         if (successCount > 0) {
+            // Note: Toast messages already handle both "moved to deleted" and "permanently deleted"
             BugleActionToasts.onConversationsDeleted(successCount);
         }
 
@@ -158,13 +159,39 @@ public class DeleteConversationAction extends Action implements Parcelable {
         String conversationId = conversation.mId;
         long cutoffTimestamp = conversation.mCutoffTimestamp;
 
-        NotificationChannelUtil.INSTANCE.deleteChannel(conversationId);
-
         if (!TextUtils.isEmpty(conversationId)) {
-            // First find the thread id for this conversation.
-            final long threadId = BugleDatabaseOperations.getThreadId(db, conversationId);
+            // Check if conversation is already marked as deleted
+            boolean isAlreadyDeleted = false;
+            Cursor cursor = null;
+            try {
+                cursor = db.query(DatabaseHelper.CONVERSATIONS_TABLE,
+                        new String[] { DatabaseHelper.ConversationColumns.DELETED_STATUS },
+                        DatabaseHelper.ConversationColumns._ID + "=?",
+                        new String[] { conversationId },
+                        null, null, null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    isAlreadyDeleted = cursor.getInt(0) == 1;
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
 
-            if (BugleDatabaseOperations.deleteConversation(db, conversationId, cutoffTimestamp)) {
+            if (!isAlreadyDeleted) {
+                // Conversation is not deleted, mark it as deleted (soft delete)
+                UpdateConversationDeletedStatusAction.deleteConversation(conversationId);
+                LogUtil.i(TAG, "DeleteConversationAction: Marked conversation as deleted "
+                        + conversationId);
+                return true;
+            } else {
+                // Conversation is already deleted, permanently delete it
+                NotificationChannelUtil.INSTANCE.deleteChannel(conversationId);
+                
+                // First find the thread id for this conversation.
+                final long threadId = BugleDatabaseOperations.getThreadId(db, conversationId);
+
+                if (BugleDatabaseOperations.deleteConversation(db, conversationId, cutoffTimestamp)) {
                 LogUtil.i(TAG, "DeleteConversationAction: Deleted local conversation "
                         + conversationId);
 
@@ -175,33 +202,34 @@ public class DeleteConversationAction extends Action implements Parcelable {
                 WidgetConversationProvider.notifyConversationDeleted(
                         Factory.get().getApplicationContext(),
                         conversationId);
-            } else {
-                LogUtil.w(TAG, "DeleteConversationAction: Could not delete local conversation "
-                        + conversationId);
-                return false;
-            }
-
-            // Now delete from telephony DB. MmsSmsProvider throws an exception if the thread id is
-            // less than 0. If it's greater than zero, it will delete all messages with that thread
-            // id, even if there's no corresponding row in the threads table.
-            if (threadId >= 0) {
-                final int count = MmsUtils.deleteThread(threadId, cutoffTimestamp);
-                if (count > 0) {
-                    LogUtil.i(TAG, "DeleteConversationAction: Deleted telephony thread "
-                            + threadId + " (cutoffTimestamp = " + cutoffTimestamp + ")");
                 } else {
-                    LogUtil.w(TAG, "DeleteConversationAction: Could not delete thread from "
-                            + "telephony: conversationId = " + conversationId + ", thread id = "
-                            + threadId);
+                    LogUtil.w(TAG, "DeleteConversationAction: Could not delete local conversation "
+                            + conversationId);
                     return false;
                 }
-            } else {
-                LogUtil.w(TAG, "DeleteConversationAction: Local conversation " + conversationId
-                        + " has an invalid telephony thread id; will delete messages individually");
-                return deleteConversationMessagesFromTelephony(conversationId);
-            }
 
-            return true;
+                // Now delete from telephony DB. MmsSmsProvider throws an exception if the thread id is
+                // less than 0. If it's greater than zero, it will delete all messages with that thread
+                // id, even if there's no corresponding row in the threads table.
+                if (threadId >= 0) {
+                    final int count = MmsUtils.deleteThread(threadId, cutoffTimestamp);
+                    if (count > 0) {
+                        LogUtil.i(TAG, "DeleteConversationAction: Deleted telephony thread "
+                                + threadId + " (cutoffTimestamp = " + cutoffTimestamp + ")");
+                    } else {
+                        LogUtil.w(TAG, "DeleteConversationAction: Could not delete thread from "
+                                + "telephony: conversationId = " + conversationId + ", thread id = "
+                                + threadId);
+                        return false;
+                    }
+                } else {
+                    LogUtil.w(TAG, "DeleteConversationAction: Local conversation " + conversationId
+                            + " has an invalid telephony thread id; will delete messages individually");
+                    return deleteConversationMessagesFromTelephony(conversationId);
+                }
+
+                return true;
+            }
         } else {
             LogUtil.e(TAG, "DeleteConversationAction: conversationId is empty");
             return false;
