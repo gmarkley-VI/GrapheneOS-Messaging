@@ -56,6 +56,7 @@ import com.android.messaging.ui.SnackBarInteraction;
 import com.android.messaging.ui.UIIntents;
 import com.android.messaging.util.AccessibilityUtil;
 import com.android.messaging.util.Assert;
+import com.android.messaging.util.BuglePrefs;
 import com.android.messaging.util.ImeUtil;
 import com.android.messaging.util.LogUtil;
 import com.android.messaging.util.UiUtils;
@@ -387,7 +388,13 @@ public class ConversationListFragment extends Fragment implements ConversationLi
                 final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
                 final String autoDeleteDaysKey = getContext()
                         .getString(R.string.auto_delete_days_pref_key);
-                final int retentionDays = prefs.getInt(autoDeleteDaysKey, 14);
+                final String retentionDaysStr = prefs.getString(autoDeleteDaysKey, "14");
+                int retentionDays = 14;
+                try {
+                    retentionDays = Integer.parseInt(retentionDaysStr);
+                } catch (NumberFormatException e) {
+                    // Use default
+                }
                 emptyListText = getString(R.string.deleted_conversation_list_empty_text, retentionDays);
             } else {
                 emptyListText = getString(R.string.conversation_list_empty_text);

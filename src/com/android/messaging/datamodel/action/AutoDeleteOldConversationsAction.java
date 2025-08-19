@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2015 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.android.messaging.datamodel.action;
 
 import android.database.Cursor;
@@ -59,7 +44,13 @@ public class AutoDeleteOldConversationsAction extends Action implements Parcelab
         final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
         final String autoDeleteDaysKey = Factory.get().getApplicationContext()
                 .getString(R.string.auto_delete_days_pref_key);
-        final int retentionDays = prefs.getInt(autoDeleteDaysKey, 14);
+        final String retentionDaysStr = prefs.getString(autoDeleteDaysKey, "14");
+        int retentionDays = 14;
+        try {
+            retentionDays = Integer.parseInt(retentionDaysStr);
+        } catch (NumberFormatException e) {
+            // Use default
+        }
         
         // If retention is 0, don't auto-delete
         if (retentionDays <= 0) {
