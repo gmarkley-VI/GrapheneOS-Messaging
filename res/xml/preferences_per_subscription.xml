@@ -58,5 +58,11 @@
             android:key="@string/wireless_alerts_key"
             android:title="@string/wireless_alerts_title"/>
 
+        <com.android.messaging.ui.appsettings.AutoDeleteDaysPreference
+            android:key="@string/auto_delete_days_pref_key"
+            android:title="@string/auto_delete_days_pref_title"
+            android:summary="@string/auto_delete_days_pref_summary"
+            android:defaultValue="14" />
+
     </PreferenceCategory>
 </PreferenceScreen>

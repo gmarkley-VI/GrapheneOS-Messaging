@@ -111,6 +111,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         /* If this conversation is deleted */
         public static final String DELETED_STATUS = "deleted_status";
 
+        /* Timestamp when conversation was marked as deleted */
+        public static final String DELETED_TIMESTAMP = "deleted_timestamp";
+
         /* Timestamp for sorting purposes */
         public static final String SORT_TIMESTAMP = "sort_timestamp";
 
@@ -179,6 +182,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     + ConversationColumns.DRAFT_PREVIEW_CONTENT_TYPE + " TEXT, "
                     + ConversationColumns.ARCHIVE_STATUS + " INT DEFAULT(0), "
                     + ConversationColumns.DELETED_STATUS + " INT DEFAULT(0), "
+                    + ConversationColumns.DELETED_TIMESTAMP + " INT DEFAULT(0), "
                     + ConversationColumns.SORT_TIMESTAMP + " INT DEFAULT(0), "
                     + ConversationColumns.LAST_READ_TIMESTAMP + " INT DEFAULT(0), "
                     + ConversationColumns.ICON + " TEXT, "

@@ -464,6 +464,8 @@
     <!-- Title for the preference for whether or not to request/show delivery reports for SMS -->
     <string name="delivery_reports_pref_title">SMS delivery reports</string>
     <string name="delivery_reports_pref_summary">Request a delivery report for each SMS you send</string>
+    <string name="auto_delete_days_pref_title">Auto-delete deleted messages</string>
+    <string name="auto_delete_days_pref_summary">Permanently delete messages after %1$d days in deleted folder</string>
     <string name="auto_retrieve_mms_pref_title">Auto-retrieve</string>
     <string name="auto_retrieve_mms_pref_summary">Automatically retrieve MMS messages</string>
     <!-- Title for the preference for whether or not to auto-retrieve MMS when roaming -->
@@ -707,7 +709,7 @@
     <string name="conversation_list_empty_text">Once you start a new conversation, you’ll see it listed here</string>
     <!-- String to show in the archived conversation list view when there are no messages. -->
     <string name="archived_conversation_list_empty_text">Archived conversations appear here</string>
-    <string name="deleted_conversation_list_empty_text">Deleted conversations appear here</string>
+    <string name="deleted_conversation_list_empty_text">Deleted conversations appear here\nAuto-deletes after %1$d days</string>
     <!-- String to show in the conversation list view when we haven't synchronized the SMS database yet -->
     <string name="conversation_list_first_sync_text">Loading conversations&#8230;</string>
 

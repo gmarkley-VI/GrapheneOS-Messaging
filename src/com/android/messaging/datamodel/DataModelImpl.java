@@ -16,12 +16,19 @@
 
 package com.android.messaging.datamodel;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.telephony.SubscriptionManager;
 
+import java.util.Calendar;
+
 import com.android.messaging.datamodel.action.ActionService;
+import com.android.messaging.datamodel.action.AutoDeleteOldConversationsAction;
+import com.android.messaging.receiver.AutoDeleteReceiver;
 import com.android.messaging.datamodel.action.BackgroundWorker;
 import com.android.messaging.datamodel.action.FixupMessageStatusOnStartupAction;
 import com.android.messaging.datamodel.action.ProcessPendingMessagesAction;
@@ -216,6 +223,12 @@ public class DataModelImpl extends DataModel {
         FixupMessageStatusOnStartupAction.fixupMessageStatus();
         ProcessPendingMessagesAction.processFirstPendingMessage();
         SyncManager.immediateSync();
+        
+        // Run auto-delete immediately on startup (in case we missed the scheduled time)
+        AutoDeleteOldConversationsAction.scheduleAutoDelete();
+        
+        // Schedule daily auto-delete of old deleted conversations
+        scheduleAutoDeleteJob();
 
 
         // Start listening for subscription change events for refreshing any data associated
@@ -235,6 +248,36 @@ public class DataModelImpl extends DataModel {
                 });
     }
 
+    private void scheduleAutoDeleteJob() {
+        // Schedule job to run daily at 00:05
+        final Context context = Factory.get().getApplicationContext();
+        final AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        
+        final Intent intent = new Intent(context, AutoDeleteReceiver.class);
+        final PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        
+        // Calculate time for next 00:05
+        final Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 5);
+        calendar.set(Calendar.SECOND, 0);
+        
+        // If it's already past 00:05 today, schedule for tomorrow
+        if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
+        }
+        
+        // Schedule repeating alarm
+        alarmManager.setInexactRepeating(
+                AlarmManager.RTC_WAKEUP,
+                calendar.getTimeInMillis(),
+                AlarmManager.INTERVAL_DAY,
+                pendingIntent);
+                
+        LogUtil.i(TAG, "Scheduled auto-delete job for " + calendar.getTime());
+    }
+    
     private void createConnectivityUtilForEachActiveSubscription() {
         PhoneUtils.forEachActiveSubscription(new PhoneUtils.SubscriptionRunnable() {
             @Override

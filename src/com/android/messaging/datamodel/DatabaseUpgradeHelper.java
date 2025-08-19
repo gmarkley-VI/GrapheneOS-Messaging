@@ -69,6 +69,8 @@ public class DatabaseUpgradeHelper {
     private int upgradeToVersion3(final SQLiteDatabase db) {
         db.execSQL("ALTER TABLE " + DatabaseHelper.CONVERSATIONS_TABLE + " ADD COLUMN " +
                 DatabaseHelper.ConversationColumns.DELETED_STATUS + " INT DEFAULT(0)");
+        db.execSQL("ALTER TABLE " + DatabaseHelper.CONVERSATIONS_TABLE + " ADD COLUMN " +
+                DatabaseHelper.ConversationColumns.DELETED_TIMESTAMP + " INT DEFAULT(0)");
         LogUtil.i(TAG, "Upgraded database to version 3");
         return 3;
     }

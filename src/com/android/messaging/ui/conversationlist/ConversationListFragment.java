@@ -377,15 +377,20 @@ public class ConversationListFragment extends Fragment implements ConversationLi
     // Show and hide empty list UI as needed with appropriate text based on view specifics
     private void updateEmptyListUi(final boolean isEmpty) {
         if (isEmpty) {
-            int emptyListText;
+            String emptyListText;
             if (!mListBinding.getData().getHasFirstSyncCompleted()) {
-                emptyListText = R.string.conversation_list_first_sync_text;
+                emptyListText = getString(R.string.conversation_list_first_sync_text);
             } else if (mArchiveMode) {
-                emptyListText = R.string.archived_conversation_list_empty_text;
+                emptyListText = getString(R.string.archived_conversation_list_empty_text);
             } else if (mDeletedMode) {
-                emptyListText = R.string.deleted_conversation_list_empty_text;
+                // Get the retention days from preferences
+                final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
+                final String autoDeleteDaysKey = getContext()
+                        .getString(R.string.auto_delete_days_pref_key);
+                final int retentionDays = prefs.getInt(autoDeleteDaysKey, 14);
+                emptyListText = getString(R.string.deleted_conversation_list_empty_text, retentionDays);
             } else {
-                emptyListText = R.string.conversation_list_empty_text;
+                emptyListText = getString(R.string.conversation_list_empty_text);
             }
             mEmptyListMessageView.setTextHint(emptyListText);
             mEmptyListMessageView.setVisibility(View.VISIBLE);

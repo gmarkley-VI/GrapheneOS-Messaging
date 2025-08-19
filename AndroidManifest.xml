@@ -383,6 +383,9 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".receiver.AutoDeleteReceiver"
+                android:exported="false" />
+
         <receiver android:name=".receiver.SendStatusReceiver"
                 android:exported="false">
             <intent-filter>
