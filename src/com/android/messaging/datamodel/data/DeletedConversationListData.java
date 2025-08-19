@@ -1,6 +1,7 @@
 package com.android.messaging.datamodel.data;
 
 import android.content.Context;
+import com.android.messaging.datamodel.data.ConversationListItemData.ConversationListViewColumns;
 
 public class DeletedConversationListData extends ConversationListData {
     

@@ -316,6 +316,8 @@ public class ConversationListItemData {
             + " as " + ConversationListViewColumns.CURRENT_SELF_ID + ", "
             + DatabaseHelper.CONVERSATIONS_TABLE + '.' + ConversationColumns.ARCHIVE_STATUS
             + " as " + ConversationListViewColumns.ARCHIVE_STATUS + ", "
+            + DatabaseHelper.CONVERSATIONS_TABLE + '.' + ConversationColumns.DELETED_STATUS
+            + " as " + ConversationListViewColumns.DELETED_STATUS + ", "
             + DatabaseHelper.MESSAGES_TABLE + '.' + MessageColumns.READ
             + " as " + ConversationListViewColumns.READ + ", "
             + DatabaseHelper.CONVERSATIONS_TABLE + '.' + ConversationColumns.ICON

@@ -26,6 +26,7 @@ import android.telephony.SubscriptionManager;
 
 import java.util.Calendar;
 
+import com.android.messaging.Factory;
 import com.android.messaging.datamodel.action.ActionService;
 import com.android.messaging.datamodel.action.AutoDeleteOldConversationsAction;
 import com.android.messaging.receiver.AutoDeleteReceiver;
@@ -275,7 +276,7 @@ public class DataModelImpl extends DataModel {
                 AlarmManager.INTERVAL_DAY,
                 pendingIntent);
                 
-        LogUtil.i(TAG, "Scheduled auto-delete job for " + calendar.getTime());
+        LogUtil.i(LogUtil.BUGLE_TAG, "Scheduled auto-delete job for " + calendar.getTime());
     }
     
     private void createConnectivityUtilForEachActiveSubscription() {
