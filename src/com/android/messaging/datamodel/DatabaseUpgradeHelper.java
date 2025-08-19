@@ -62,7 +62,7 @@ public class DatabaseUpgradeHelper {
     private int upgradeToVersion2(final SQLiteDatabase db) {
         db.execSQL("ALTER TABLE " + DatabaseHelper.CONVERSATIONS_TABLE + " ADD COLUMN " +
                 DatabaseHelper.ConversationColumns.IS_ENTERPRISE + " INT DEFAULT(0)");
-        LogUtil.i(TAG, "Ugraded database to version 2");
+        LogUtil.i(TAG, "Upgraded database to version 2");
         return 2;
     }
 
