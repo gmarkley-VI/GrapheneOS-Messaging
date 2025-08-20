@@ -196,19 +196,21 @@ public class DeleteConversationAction extends Action implements Parcelable {
                 LogUtil.i(TAG, "DeleteConversationAction: Marked conversation as deleted "
                         + conversationId);
                 return true;
-            } else if (!isAlreadyDeleted && retentionDays == 0) {
-                // Retention is 0, skip soft delete and permanently delete immediately
+            }
+            
+            // Either already deleted OR retention is 0 (immediate delete)
+            if (!isAlreadyDeleted && retentionDays == 0) {
                 LogUtil.i(TAG, "DeleteConversationAction: Auto-delete is 0 days, permanently deleting immediately "
                         + conversationId);
-                // Fall through to permanent deletion logic
-            } else {
-                // Conversation is already deleted, permanently delete it
-                NotificationChannelUtil.INSTANCE.deleteChannel(conversationId);
-                
-                // First find the thread id for this conversation.
-                final long threadId = BugleDatabaseOperations.getThreadId(db, conversationId);
+            }
+            
+            // Permanent deletion logic (for both already deleted and immediate delete cases)
+            NotificationChannelUtil.INSTANCE.deleteChannel(conversationId);
+            
+            // First find the thread id for this conversation.
+            final long threadId = BugleDatabaseOperations.getThreadId(db, conversationId);
 
-                if (BugleDatabaseOperations.deleteConversation(db, conversationId, cutoffTimestamp)) {
+            if (BugleDatabaseOperations.deleteConversation(db, conversationId, cutoffTimestamp)) {
                 LogUtil.i(TAG, "DeleteConversationAction: Deleted local conversation "
                         + conversationId);
 
@@ -219,34 +221,33 @@ public class DeleteConversationAction extends Action implements Parcelable {
                 WidgetConversationProvider.notifyConversationDeleted(
                         Factory.get().getApplicationContext(),
                         conversationId);
+            } else {
+                LogUtil.w(TAG, "DeleteConversationAction: Could not delete local conversation "
+                        + conversationId);
+                return false;
+            }
+
+            // Now delete from telephony DB. MmsSmsProvider throws an exception if the thread id is
+            // less than 0. If it's greater than zero, it will delete all messages with that thread
+            // id, even if there's no corresponding row in the threads table.
+            if (threadId >= 0) {
+                final int count = MmsUtils.deleteThread(threadId, cutoffTimestamp);
+                if (count > 0) {
+                    LogUtil.i(TAG, "DeleteConversationAction: Deleted telephony thread "
+                            + threadId + " (cutoffTimestamp = " + cutoffTimestamp + ")");
                 } else {
-                    LogUtil.w(TAG, "DeleteConversationAction: Could not delete local conversation "
-                            + conversationId);
+                    LogUtil.w(TAG, "DeleteConversationAction: Could not delete thread from "
+                            + "telephony: conversationId = " + conversationId + ", thread id = "
+                            + threadId);
                     return false;
                 }
-
-                // Now delete from telephony DB. MmsSmsProvider throws an exception if the thread id is
-                // less than 0. If it's greater than zero, it will delete all messages with that thread
-                // id, even if there's no corresponding row in the threads table.
-                if (threadId >= 0) {
-                    final int count = MmsUtils.deleteThread(threadId, cutoffTimestamp);
-                    if (count > 0) {
-                        LogUtil.i(TAG, "DeleteConversationAction: Deleted telephony thread "
-                                + threadId + " (cutoffTimestamp = " + cutoffTimestamp + ")");
-                    } else {
-                        LogUtil.w(TAG, "DeleteConversationAction: Could not delete thread from "
-                                + "telephony: conversationId = " + conversationId + ", thread id = "
-                                + threadId);
-                        return false;
-                    }
-                } else {
-                    LogUtil.w(TAG, "DeleteConversationAction: Local conversation " + conversationId
-                            + " has an invalid telephony thread id; will delete messages individually");
-                    return deleteConversationMessagesFromTelephony(conversationId);
-                }
-
-                return true;
+            } else {
+                LogUtil.w(TAG, "DeleteConversationAction: Local conversation " + conversationId
+                        + " has an invalid telephony thread id; will delete messages individually");
+                return deleteConversationMessagesFromTelephony(conversationId);
             }
+
+            return true;
         } else {
             LogUtil.e(TAG, "DeleteConversationAction: conversationId is empty");
             return false;
