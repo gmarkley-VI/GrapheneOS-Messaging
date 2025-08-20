@@ -62,7 +62,7 @@
             android:key="@string/auto_delete_days_pref_key"
             android:title="@string/auto_delete_days_pref_title"
             android:summary="@string/auto_delete_days_pref_summary"
-            android:defaultValue="14" />
+            android:defaultValue="@integer/auto_delete_days_default" />
 
     </PreferenceCategory>
 </PreferenceScreen>

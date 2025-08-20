@@ -16,7 +16,6 @@ import com.android.messaging.R;
 public class AutoDeleteDaysPreference extends EditTextPreference {
     
     private static final int MAX_DAYS = 999;
-    private static final int DEFAULT_DAYS = 14;
     
     public AutoDeleteDaysPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -41,44 +40,81 @@ public class AutoDeleteDaysPreference extends EditTextPreference {
     @Override
     public void setText(String text) {
         // Validate and constrain the value
-        int days = DEFAULT_DAYS;
         try {
-            days = Integer.parseInt(text);
+            int days = Integer.parseInt(text);
             if (days < 0) days = 0;
             if (days > MAX_DAYS) days = MAX_DAYS;
+            // Store as integer in preferences
+            persistInt(days);
+            // Also update the text for display
+            super.setText(String.valueOf(days));
         } catch (NumberFormatException e) {
-            // Use default
+            // Invalid input, don't change the value
+            return;
         }
-        
-        super.setText(String.valueOf(days));
         updateSummary();
     }
     
     @Override
     public String getText() {
-        String text = super.getText();
-        if (text == null || text.isEmpty()) {
-            return String.valueOf(DEFAULT_DAYS);
+        // Get the integer value and convert to string for display
+        int days = getPersistedInt(getContext().getResources().getInteger(R.integer.auto_delete_days_default));
+        return String.valueOf(days);
+    }
+    
+    @Override
+    protected String getPersistedString(String defaultReturnValue) {
+        // Override to get int value as string
+        int days = getPersistedInt(getContext().getResources().getInteger(R.integer.auto_delete_days_default));
+        return String.valueOf(days);
+    }
+    
+    @Override
+    protected boolean persistString(String value) {
+        // Override to persist as integer
+        try {
+            int days = Integer.parseInt(value);
+            return persistInt(days);
+        } catch (NumberFormatException e) {
+            return false;
         }
-        return text;
     }
     
     private void updateSummary() {
         String currentValue = getText();
-        int days = DEFAULT_DAYS;
-        try {
-            days = Integer.parseInt(currentValue);
-        } catch (NumberFormatException e) {
-            // Use default
+        if (currentValue == null || currentValue.isEmpty()) {
+            // Preference not yet initialized, summary will be set from XML
+            return;
         }
         
-        String summary = getContext().getString(R.string.auto_delete_days_pref_summary, days);
-        setSummary(summary);
+        try {
+            int days = Integer.parseInt(currentValue);
+            String summary;
+            if (days == 0) {
+                summary = getContext().getString(R.string.auto_delete_immediately_summary);
+            } else {
+                summary = getContext().getString(R.string.auto_delete_days_pref_summary, days);
+            }
+            setSummary(summary);
+        } catch (NumberFormatException e) {
+            // Invalid value, don't update summary
+        }
     }
     
     @Override
     protected void onSetInitialValue(Object defaultValue) {
-        String value = getPersistedString(String.valueOf(DEFAULT_DAYS));
-        setText(value);
+        // The defaultValue parameter comes from android:defaultValue in XML
+        // Since we use @integer/auto_delete_days_default, it comes as an Integer
+        int defaultDays;
+        if (defaultValue instanceof Integer) {
+            defaultDays = (Integer) defaultValue;
+        } else {
+            // Fallback to resource default if not an integer
+            defaultDays = getContext().getResources().getInteger(R.integer.auto_delete_days_default);
+        }
+        int days = getPersistedInt(defaultDays);
+        // Don't call setText as it would persist again, just update display
+        super.setText(String.valueOf(days));
+        updateSummary();
     }
 }

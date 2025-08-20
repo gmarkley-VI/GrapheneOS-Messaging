@@ -16,6 +16,7 @@
 
 package com.android.messaging.datamodel.action;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.android.messaging.Factory;
+import com.android.messaging.R;
 import com.android.messaging.datamodel.BugleDatabaseOperations;
 import com.android.messaging.datamodel.BugleNotifications;
 import com.android.messaging.datamodel.DataModel;
@@ -37,6 +39,7 @@ import com.android.messaging.datamodel.MessagingContentProvider;
 import com.android.messaging.sms.MmsUtils;
 import com.android.messaging.ui.conversationlist.MultiSelectActionModeCallback.SelectedConversation;
 import com.android.messaging.util.Assert;
+import com.android.messaging.util.BuglePrefs;
 import com.android.messaging.util.LogUtil;
 import com.android.messaging.util.NotificationChannelUtil;
 import com.android.messaging.widget.WidgetConversationProvider;
@@ -160,6 +163,15 @@ public class DeleteConversationAction extends Action implements Parcelable {
         long cutoffTimestamp = conversation.mCutoffTimestamp;
 
         if (!TextUtils.isEmpty(conversationId)) {
+            // Check auto-delete preference to determine if we should skip soft delete
+            final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
+            final Context context = Factory.get().getApplicationContext();
+            final String autoDeleteDaysKey = context.getString(R.string.auto_delete_days_pref_key);
+            // Get default from resources (defined in constants.xml)
+            final int defaultDays = context.getResources().getInteger(R.integer.auto_delete_days_default);
+            // Now stored as integer in preferences
+            final int retentionDays = prefs.getInt(autoDeleteDaysKey, defaultDays);
+            
             // Check if conversation is already marked as deleted
             boolean isAlreadyDeleted = false;
             Cursor cursor = null;
@@ -178,12 +190,17 @@ public class DeleteConversationAction extends Action implements Parcelable {
                 }
             }
 
-            if (!isAlreadyDeleted) {
-                // Conversation is not deleted, mark it as deleted (soft delete)
+            if (!isAlreadyDeleted && retentionDays != 0) {
+                // Conversation is not deleted and retention is not 0, mark it as deleted (soft delete)
                 UpdateConversationDeletedStatusAction.deleteConversation(conversationId);
                 LogUtil.i(TAG, "DeleteConversationAction: Marked conversation as deleted "
                         + conversationId);
                 return true;
+            } else if (!isAlreadyDeleted && retentionDays == 0) {
+                // Retention is 0, skip soft delete and permanently delete immediately
+                LogUtil.i(TAG, "DeleteConversationAction: Auto-delete is 0 days, permanently deleting immediately "
+                        + conversationId);
+                // Fall through to permanent deletion logic
             } else {
                 // Conversation is already deleted, permanently delete it
                 NotificationChannelUtil.INSTANCE.deleteChannel(conversationId);

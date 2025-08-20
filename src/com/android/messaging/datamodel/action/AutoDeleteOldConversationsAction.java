@@ -1,5 +1,6 @@
 package com.android.messaging.datamodel.action;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -42,24 +43,24 @@ public class AutoDeleteOldConversationsAction extends Action implements Parcelab
     protected Object executeAction() {
         // Get the configured retention days from preferences
         final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
-        final String autoDeleteDaysKey = Factory.get().getApplicationContext()
-                .getString(R.string.auto_delete_days_pref_key);
-        final String retentionDaysStr = prefs.getString(autoDeleteDaysKey, "14");
-        int retentionDays = 14;
-        try {
-            retentionDays = Integer.parseInt(retentionDaysStr);
-        } catch (NumberFormatException e) {
-            // Use default
-        }
+        final Context context = Factory.get().getApplicationContext();
+        final String autoDeleteDaysKey = context.getString(R.string.auto_delete_days_pref_key);
+        // Get default from resources (defined in constants.xml)
+        final int defaultDays = context.getResources().getInteger(R.integer.auto_delete_days_default);
+        // Now stored as integer in preferences
+        final int retentionDays = prefs.getInt(autoDeleteDaysKey, defaultDays);
         
-        // If retention is 0, don't auto-delete
-        if (retentionDays <= 0) {
-            LogUtil.i(TAG, "Auto-delete disabled (retention days = 0)");
+        // If retention is negative, disable auto-delete
+        if (retentionDays < 0) {
+            LogUtil.i(TAG, "Auto-delete disabled (retention days < 0)");
             return null;
         }
         
         // Calculate cutoff timestamp
-        final long cutoffTimestamp = System.currentTimeMillis() - (retentionDays * 24L * 60L * 60L * 1000L);
+        // If retention is 0, delete immediately (use current time + 1 to include all deleted conversations)
+        final long cutoffTimestamp = retentionDays == 0 
+            ? System.currentTimeMillis() + 1 
+            : System.currentTimeMillis() - (retentionDays * 24L * 60L * 60L * 1000L);
         
         final DatabaseWrapper db = DataModel.get().getDatabase();
         final List<String> conversationsToDelete = new ArrayList<>();
@@ -75,7 +76,7 @@ public class AutoDeleteOldConversationsAction extends Action implements Parcelab
                     new String[] { String.valueOf(cutoffTimestamp) },
                     null, null, null);
                     
-            while (cursor != null && cursor.moveToNext()) {
+            while (cursor.moveToNext()) {
                 conversationsToDelete.add(cursor.getString(0));
             }
         } finally {
