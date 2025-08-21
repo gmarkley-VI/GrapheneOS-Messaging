@@ -470,6 +470,9 @@
     <string name="auto_delete_days_pref_title">Recently deleted retention</string>
     <string name="auto_delete_days_pref_summary">Keep recently deleted messages for %1$d days</string>
     <string name="auto_delete_immediately_summary">Don\'t keep deleted messages - remove immediately</string>
+    <string name="auto_delete_today">Deleting today</string>
+    <string name="auto_delete_tomorrow">Deleting tomorrow</string>
+    <string name="auto_delete_in_days">Deleting in %1$d days</string>
     <string name="auto_retrieve_mms_pref_title">Auto-retrieve</string>
     <string name="auto_retrieve_mms_pref_summary">Automatically retrieve MMS messages</string>
     <!-- Title for the preference for whether or not to auto-retrieve MMS when roaming -->

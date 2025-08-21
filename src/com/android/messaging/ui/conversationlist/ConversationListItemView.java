@@ -133,6 +133,7 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
     private TextView mSnippetTextView;
     private TextView mSubjectTextView;
     private TextView mTimestampTextView;
+    private TextView mAutoDeleteCountdownView;
     private ContactIconView mContactIconView;
     private ImageView mContactCheckmarkView;
     private ImageView mNotificationBellView;
@@ -159,6 +160,7 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         mSubjectTextView = (TextView) findViewById(R.id.conversation_subject);
         mWorkProfileIconView = (ImageView) findViewById(R.id.work_profile_icon);
         mTimestampTextView = (TextView) findViewById(R.id.conversation_timestamp);
+        mAutoDeleteCountdownView = (TextView) findViewById(R.id.auto_delete_countdown);
         mContactIconView = (ContactIconView) findViewById(R.id.conversation_icon);
         mContactCheckmarkView = (ImageView) findViewById(R.id.conversation_checkmark);
         mNotificationBellView = (ImageView) findViewById(R.id.conversation_notification_bell);
@@ -446,6 +448,33 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
             } else {
                 mTimestampTextView.setText(formattedTimestamp);
             }
+        }
+        
+        // Show auto-delete countdown for deleted conversations
+        if (mData.getIsDeleted() && mAutoDeleteCountdownView != null) {
+            final int daysRemaining = mData.getDaysUntilAutoDelete();
+            if (daysRemaining >= 0) {
+                mAutoDeleteCountdownView.setVisibility(VISIBLE);
+                if (daysRemaining == 0) {
+                    mAutoDeleteCountdownView.setText(resources.getString(
+                            R.string.auto_delete_today));
+                    mAutoDeleteCountdownView.setTextColor(resources.getColor(
+                            R.color.conversation_list_error));
+                } else if (daysRemaining == 1) {
+                    mAutoDeleteCountdownView.setText(resources.getString(
+                            R.string.auto_delete_tomorrow));
+                    mAutoDeleteCountdownView.setTextColor(resources.getColor(
+                            R.color.conversation_list_error));
+                } else {
+                    mAutoDeleteCountdownView.setText(resources.getString(
+                            R.string.auto_delete_in_days, daysRemaining));
+                    mAutoDeleteCountdownView.setTextColor(mListItemReadColor);
+                }
+            } else {
+                mAutoDeleteCountdownView.setVisibility(GONE);
+            }
+        } else if (mAutoDeleteCountdownView != null) {
+            mAutoDeleteCountdownView.setVisibility(GONE);
         }
 
         final boolean isSelected = mHostInterface.isConversationSelected(mData.getConversationId());

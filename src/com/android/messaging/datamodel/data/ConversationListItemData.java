@@ -17,11 +17,14 @@
 package com.android.messaging.datamodel.data;
 
 import android.app.NotificationChannel;
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
 import android.text.TextUtils;
 
+import com.android.messaging.Factory;
+import com.android.messaging.R;
 import com.android.messaging.datamodel.DatabaseHelper;
 import com.android.messaging.datamodel.DatabaseHelper.ConversationColumns;
 import com.android.messaging.datamodel.DatabaseHelper.MessageColumns;
@@ -29,6 +32,7 @@ import com.android.messaging.datamodel.DatabaseHelper.ParticipantColumns;
 import com.android.messaging.datamodel.DatabaseWrapper;
 import com.android.messaging.datamodel.action.DeleteConversationAction;
 import com.android.messaging.util.Assert;
+import com.android.messaging.util.BuglePrefs;
 import com.android.messaging.util.ContactUtil;
 import com.android.messaging.util.Dates;
 import com.android.messaging.util.NotificationChannelUtil;
@@ -66,6 +70,7 @@ public class ConversationListItemData {
     private String mDraftSnippetText;
     private boolean mIsArchived;
     private boolean mIsDeleted;
+    private long mDeletedTimestamp;
     private String mSubject;
     private String mDraftSubject;
     private String mSnippetSenderFirstName;
@@ -129,6 +134,7 @@ public class ConversationListItemData {
 
         mIsArchived = cursor.getInt(INDEX_ARCHIVE_STATUS) == 1;
         mIsDeleted = cursor.getInt(INDEX_DELETED_STATUS) == 1;
+        mDeletedTimestamp = cursor.getLong(INDEX_DELETED_TIMESTAMP);
         mSubject = cursor.getString(INDEX_SUBJECT_TEXT);
         mSnippetSenderFirstName = cursor.getString(INDEX_SNIPPET_SENDER_FIRST_NAME);
         mSnippetSenderDisplayDestination =
@@ -275,6 +281,46 @@ public class ConversationListItemData {
         return mIsDeleted;
     }
 
+    public long getDeletedTimestamp() {
+        return mDeletedTimestamp;
+    }
+    
+    /**
+     * Calculate days remaining until auto-delete for deleted conversations
+     * @return Number of days remaining, or -1 if auto-delete is disabled or conversation is not deleted
+     */
+    public int getDaysUntilAutoDelete() {
+        if (!mIsDeleted || mDeletedTimestamp <= 0) {
+            return -1;
+        }
+        
+        // Get the configured retention days from preferences
+        final Context context = Factory.get().getApplicationContext();
+        final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
+        final String autoDeleteDaysKey = context.getString(R.string.auto_delete_days_pref_key);
+        final int defaultDays = context.getResources().getInteger(R.integer.auto_delete_days_default);
+        final int retentionDays = prefs.getInt(autoDeleteDaysKey, defaultDays);
+        
+        // If retention is negative, auto-delete is disabled
+        if (retentionDays < 0) {
+            return -1;
+        }
+        
+        // If retention is 0, delete immediately (show 0 days)
+        if (retentionDays == 0) {
+            return 0;
+        }
+        
+        // Calculate days elapsed since deletion
+        final long currentTime = System.currentTimeMillis();
+        final long elapsedMillis = currentTime - mDeletedTimestamp;
+        final int elapsedDays = (int) (elapsedMillis / (24L * 60L * 60L * 1000L));
+        
+        // Calculate days remaining
+        final int daysRemaining = retentionDays - elapsedDays;
+        return Math.max(0, daysRemaining);
+    }
+
     public String getSubject() {
         return mSubject;
     }
@@ -318,6 +364,8 @@ public class ConversationListItemData {
             + " as " + ConversationListViewColumns.ARCHIVE_STATUS + ", "
             + DatabaseHelper.CONVERSATIONS_TABLE + '.' + ConversationColumns.DELETED_STATUS
             + " as " + ConversationListViewColumns.DELETED_STATUS + ", "
+            + DatabaseHelper.CONVERSATIONS_TABLE + '.' + ConversationColumns.DELETED_TIMESTAMP
+            + " as " + ConversationListViewColumns.DELETED_TIMESTAMP + ", "
             + DatabaseHelper.MESSAGES_TABLE + '.' + MessageColumns.READ
             + " as " + ConversationListViewColumns.READ + ", "
             + DatabaseHelper.CONVERSATIONS_TABLE + '.' + ConversationColumns.ICON
@@ -398,6 +446,7 @@ public class ConversationListItemData {
         static final String NAME = ConversationColumns.NAME;
         static final String ARCHIVE_STATUS = ConversationColumns.ARCHIVE_STATUS;
         static final String DELETED_STATUS = ConversationColumns.DELETED_STATUS;
+        static final String DELETED_TIMESTAMP = ConversationColumns.DELETED_TIMESTAMP;
         static final String READ = MessageColumns.READ;
         static final String SORT_TIMESTAMP = ConversationColumns.SORT_TIMESTAMP;
         static final String PREVIEW_URI = ConversationColumns.PREVIEW_URI;
@@ -456,6 +505,7 @@ public class ConversationListItemData {
         ConversationListViewColumns.DRAFT_SNIPPET_TEXT,
         ConversationListViewColumns.ARCHIVE_STATUS,
         ConversationListViewColumns.DELETED_STATUS,
+        ConversationListViewColumns.DELETED_TIMESTAMP,
         ConversationListViewColumns.MESSAGE_ID,
         ConversationListViewColumns.SUBJECT_TEXT,
         ConversationListViewColumns.DRAFT_SUBJECT_TEXT,
@@ -489,13 +539,14 @@ public class ConversationListItemData {
     private static final int INDEX_DRAFT_SNIPPET_TEXT = 21;
     private static final int INDEX_ARCHIVE_STATUS = 22;
     private static final int INDEX_DELETED_STATUS = 23;
-    private static final int INDEX_MESSAGE_ID = 24;
-    private static final int INDEX_SUBJECT_TEXT = 25;
-    private static final int INDEX_DRAFT_SUBJECT_TEXT = 26;
-    private static final int INDEX_MESSAGE_RAW_TELEPHONY_STATUS = 27;
-    private static final int INDEX_SNIPPET_SENDER_FIRST_NAME = 28;
-    private static final int INDEX_SNIPPET_SENDER_DISPLAY_DESTINATION = 29;
-    private static final int INDEX_IS_ENTERPRISE = 30;
+    private static final int INDEX_DELETED_TIMESTAMP = 24;
+    private static final int INDEX_MESSAGE_ID = 25;
+    private static final int INDEX_SUBJECT_TEXT = 26;
+    private static final int INDEX_DRAFT_SUBJECT_TEXT = 27;
+    private static final int INDEX_MESSAGE_RAW_TELEPHONY_STATUS = 28;
+    private static final int INDEX_SNIPPET_SENDER_FIRST_NAME = 29;
+    private static final int INDEX_SNIPPET_SENDER_DISPLAY_DESTINATION = 30;
+    private static final int INDEX_IS_ENTERPRISE = 31;
 
     private static final String DIVIDER_TEXT = ", ";
 
