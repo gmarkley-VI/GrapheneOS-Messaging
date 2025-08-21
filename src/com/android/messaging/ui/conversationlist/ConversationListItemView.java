@@ -418,12 +418,13 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         setContentDescription(buildContentDescription(resources, mData,
                 mConversationNameView.getPaint()));
 
+        final boolean isDefaultSmsApp = PhoneUtils.getDefault().isDefaultSmsApp();
+        
         // Hide timestamp for deleted conversations (we'll show the countdown instead)
         if (mData.getIsDeleted()) {
             mTimestampTextView.setVisibility(GONE);
         } else {
             mTimestampTextView.setVisibility(VISIBLE);
-            final boolean isDefaultSmsApp = PhoneUtils.getDefault().isDefaultSmsApp();
             // don't show the error state unless we're the default sms app
             if (mData.getIsFailedStatus() && isDefaultSmsApp) {
                 mTimestampTextView.setTextColor(resources.getColor(R.color.conversation_list_error));
