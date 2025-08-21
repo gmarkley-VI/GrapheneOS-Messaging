@@ -49,6 +49,13 @@
         android:defaultValue="@bool/swipe_right_delete_pref_default"
         android:persistent="true" />
 
+    <com.android.messaging.ui.appsettings.AutoDeleteDaysPreference
+        android:key="@string/auto_delete_days_pref_key"
+        android:title="@string/auto_delete_days_pref_title"
+        android:summary="@string/auto_delete_days_pref_summary"
+        android:defaultValue="@integer/auto_delete_days_default"
+        android:persistent="true" />
+
     <PreferenceScreen
         android:key="@string/notifications_category_pref_key"
         android:title="@string/notifications_enabled_conversation_pref_title"

@@ -388,13 +388,9 @@ public class ConversationListFragment extends Fragment implements ConversationLi
                 final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
                 final String autoDeleteDaysKey = getContext()
                         .getString(R.string.auto_delete_days_pref_key);
-                final String retentionDaysStr = prefs.getString(autoDeleteDaysKey, "14");
-                int retentionDays = 14;
-                try {
-                    retentionDays = Integer.parseInt(retentionDaysStr);
-                } catch (NumberFormatException e) {
-                    // Use default
-                }
+                final int defaultDays = getContext().getResources()
+                        .getInteger(R.integer.auto_delete_days_default);
+                final int retentionDays = prefs.getInt(autoDeleteDaysKey, defaultDays);
                 emptyListText = getString(R.string.deleted_conversation_list_empty_text, retentionDays);
             } else {
                 emptyListText = getString(R.string.conversation_list_empty_text);
