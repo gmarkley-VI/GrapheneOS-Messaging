@@ -418,35 +418,41 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         setContentDescription(buildContentDescription(resources, mData,
                 mConversationNameView.getPaint()));
 
-        final boolean isDefaultSmsApp = PhoneUtils.getDefault().isDefaultSmsApp();
-        // don't show the error state unless we're the default sms app
-        if (mData.getIsFailedStatus() && isDefaultSmsApp) {
-            mTimestampTextView.setTextColor(resources.getColor(R.color.conversation_list_error));
-            mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
-            int failureMessageId = R.string.message_status_download_failed;
-            if (mData.getIsMessageTypeOutgoing()) {
-                failureMessageId = MmsUtils.mapRawStatusToErrorResourceId(mData.getMessageStatus(),
-                        mData.getMessageRawTelephonyStatus());
-            }
-            mTimestampTextView.setText(resources.getString(failureMessageId));
-        } else if (mData.getShowDraft()
-                || mData.getMessageStatus() == MessageData.BUGLE_STATUS_OUTGOING_DRAFT
-                // also check for unknown status which we get because sometimes the conversation
-                // row is left with a latest_message_id of a no longer existing message and
-                // therefore the join values come back as null (or in this case zero).
-                || mData.getMessageStatus() == MessageData.BUGLE_STATUS_UNKNOWN) {
-            mTimestampTextView.setTextColor(mListItemReadColor);
-            mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
-            mTimestampTextView.setText(resources.getString(
-                    R.string.conversation_list_item_view_draft_message));
-         } else {
-            mTimestampTextView.setTextColor(mListItemReadColor);
-            mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
-            final String formattedTimestamp = mData.getFormattedTimestamp();
-            if (mData.getIsSendRequested()) {
-                mTimestampTextView.setText(R.string.message_status_sending);
-            } else {
-                mTimestampTextView.setText(formattedTimestamp);
+        // Hide timestamp for deleted conversations (we'll show the countdown instead)
+        if (mData.getIsDeleted()) {
+            mTimestampTextView.setVisibility(GONE);
+        } else {
+            mTimestampTextView.setVisibility(VISIBLE);
+            final boolean isDefaultSmsApp = PhoneUtils.getDefault().isDefaultSmsApp();
+            // don't show the error state unless we're the default sms app
+            if (mData.getIsFailedStatus() && isDefaultSmsApp) {
+                mTimestampTextView.setTextColor(resources.getColor(R.color.conversation_list_error));
+                mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
+                int failureMessageId = R.string.message_status_download_failed;
+                if (mData.getIsMessageTypeOutgoing()) {
+                    failureMessageId = MmsUtils.mapRawStatusToErrorResourceId(mData.getMessageStatus(),
+                            mData.getMessageRawTelephonyStatus());
+                }
+                mTimestampTextView.setText(resources.getString(failureMessageId));
+            } else if (mData.getShowDraft()
+                    || mData.getMessageStatus() == MessageData.BUGLE_STATUS_OUTGOING_DRAFT
+                    // also check for unknown status which we get because sometimes the conversation
+                    // row is left with a latest_message_id of a no longer existing message and
+                    // therefore the join values come back as null (or in this case zero).
+                    || mData.getMessageStatus() == MessageData.BUGLE_STATUS_UNKNOWN) {
+                mTimestampTextView.setTextColor(mListItemReadColor);
+                mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
+                mTimestampTextView.setText(resources.getString(
+                        R.string.conversation_list_item_view_draft_message));
+             } else {
+                mTimestampTextView.setTextColor(mListItemReadColor);
+                mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
+                final String formattedTimestamp = mData.getFormattedTimestamp();
+                if (mData.getIsSendRequested()) {
+                    mTimestampTextView.setText(R.string.message_status_sending);
+                } else {
+                    mTimestampTextView.setText(formattedTimestamp);
+                }
             }
         }
         
