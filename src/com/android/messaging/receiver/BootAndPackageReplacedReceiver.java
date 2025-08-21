@@ -22,6 +22,8 @@ import android.content.Intent;
 
 import com.android.messaging.BugleApplication;
 import com.android.messaging.Factory;
+import com.android.messaging.datamodel.DataModel;
+import com.android.messaging.datamodel.action.AutoDeleteOldConversationsAction;
 import com.android.messaging.datamodel.action.UpdateMessageNotificationAction;
 import com.android.messaging.util.BuglePrefsKeys;
 import com.android.messaging.util.LogUtil;
@@ -40,6 +42,12 @@ public class BootAndPackageReplacedReceiver extends BroadcastReceiver {
             UpdateMessageNotificationAction.updateMessageNotification();
 
             BugleApplication.updateAppConfig(context);
+            
+            // Run auto-delete on boot and reschedule the alarm
+            // This ensures deleted conversations are cleaned up even if we missed the scheduled time
+            AutoDeleteOldConversationsAction.scheduleAutoDelete();
+            // The alarm will be rescheduled when DataModel.onApplicationCreated() is called
+            
         } else {
             LogUtil.i(LogUtil.BUGLE_TAG, "BootAndPackageReplacedReceiver got unexpected action: "
                     + intent.getAction());

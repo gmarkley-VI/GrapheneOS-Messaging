@@ -57,10 +57,15 @@ public class AutoDeleteOldConversationsAction extends Action implements Parcelab
         }
         
         // Calculate cutoff timestamp
-        // If retention is 0, delete immediately (use current time + 1 to include all deleted conversations)
-        final long cutoffTimestamp = retentionDays == 0 
-            ? System.currentTimeMillis() + 1 
-            : System.currentTimeMillis() - (retentionDays * 24L * 60L * 60L * 1000L);
+        // If retention is 0, delete all deleted conversations immediately
+        final long cutoffTimestamp;
+        if (retentionDays == 0) {
+            // Use MAX_VALUE to include all deleted conversations
+            cutoffTimestamp = Long.MAX_VALUE;
+        } else {
+            // Calculate the cutoff based on retention days
+            cutoffTimestamp = System.currentTimeMillis() - (retentionDays * 24L * 60L * 60L * 1000L);
+        }
         
         final DatabaseWrapper db = DataModel.get().getDatabase();
         final List<String> conversationsToDelete = new ArrayList<>();
@@ -72,7 +77,7 @@ public class AutoDeleteOldConversationsAction extends Action implements Parcelab
                     new String[] { ConversationColumns._ID },
                     ConversationColumns.DELETED_STATUS + " = 1 AND " +
                     ConversationColumns.DELETED_TIMESTAMP + " > 0 AND " +
-                    ConversationColumns.DELETED_TIMESTAMP + " < ?",
+                    ConversationColumns.DELETED_TIMESTAMP + " <= ?",
                     new String[] { String.valueOf(cutoffTimestamp) },
                     null, null, null);
                     
