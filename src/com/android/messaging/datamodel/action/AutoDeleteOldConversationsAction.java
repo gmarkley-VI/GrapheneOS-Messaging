@@ -56,33 +56,34 @@ public class AutoDeleteOldConversationsAction extends Action implements Parcelab
             return null;
         }
         
-        // Calculate cutoff timestamp
-        // If retention is 0, delete all deleted conversations immediately
-        final long cutoffTimestamp;
-        if (retentionDays == 0) {
-            // Use MAX_VALUE to include all deleted conversations
-            cutoffTimestamp = Long.MAX_VALUE;
-        } else {
-            // Calculate the cutoff based on retention days
-            cutoffTimestamp = System.currentTimeMillis() - (retentionDays * 24L * 60L * 60L * 1000L);
-        }
-        
         final DatabaseWrapper db = DataModel.get().getDatabase();
         final List<String> conversationsToDelete = new ArrayList<>();
         
-        // Find conversations marked as deleted that are older than retention period
+        // Find conversations marked as deleted where the retention period has expired
+        // Using the same logic as getDaysUntilAutoDelete: 
+        // days_since_deleted >= retention_days means it should be deleted
         Cursor cursor = null;
         try {
+            // Get all deleted conversations
             cursor = db.query(DatabaseHelper.CONVERSATIONS_TABLE,
-                    new String[] { ConversationColumns._ID },
+                    new String[] { ConversationColumns._ID, ConversationColumns.DELETED_TIMESTAMP },
                     ConversationColumns.DELETED_STATUS + " = 1 AND " +
-                    ConversationColumns.DELETED_TIMESTAMP + " > 0 AND " +
-                    ConversationColumns.DELETED_TIMESTAMP + " <= ?",
-                    new String[] { String.valueOf(cutoffTimestamp) },
-                    null, null, null);
+                    ConversationColumns.DELETED_TIMESTAMP + " > 0",
+                    null, null, null, null);
                     
+            final long currentTime = System.currentTimeMillis();
             while (cursor.moveToNext()) {
-                conversationsToDelete.add(cursor.getString(0));
+                final String conversationId = cursor.getString(0);
+                final long deletedTimestamp = cursor.getLong(1);
+                
+                // Calculate days since deletion (same as in getDaysUntilAutoDelete)
+                final long millisSinceDeleted = currentTime - deletedTimestamp;
+                final int daysSinceDeleted = (int) (millisSinceDeleted / (24L * 60L * 60L * 1000L));
+                
+                // If days since deleted >= retention days, delete it
+                if (daysSinceDeleted >= retentionDays) {
+                    conversationsToDelete.add(conversationId);
+                }
             }
         } finally {
             if (cursor != null) {

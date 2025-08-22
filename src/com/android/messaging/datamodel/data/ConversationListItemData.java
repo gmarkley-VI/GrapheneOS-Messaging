@@ -306,18 +306,15 @@ public class ConversationListItemData {
             return -1;
         }
         
-        // If retention is 0, delete immediately (show 0 days)
-        if (retentionDays == 0) {
-            return 0;
-        }
-        
-        // Calculate days elapsed since deletion
+        // Calculate days since deletion
         final long currentTime = System.currentTimeMillis();
-        final long elapsedMillis = currentTime - mDeletedTimestamp;
-        final int elapsedDays = (int) (elapsedMillis / (24L * 60L * 60L * 1000L));
+        final long millisSinceDeleted = currentTime - mDeletedTimestamp;
+        final int daysSinceDeleted = (int) (millisSinceDeleted / (24L * 60L * 60L * 1000L));
         
-        // Calculate days remaining
-        final int daysRemaining = retentionDays - elapsedDays;
+        // Calculate days remaining (retention period minus days elapsed)
+        final int daysRemaining = retentionDays - daysSinceDeleted;
+        
+        // Return 0 if we're past the retention period
         return Math.max(0, daysRemaining);
     }
 
