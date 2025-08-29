@@ -251,8 +251,11 @@
     <string name="back">Back</string>
     <!-- Action menu title for showing archived conversations -->
     <string name="action_menu_show_archived">Archived</string>
+    <string name="action_menu_show_deleted">Deleted</string>
     <!-- Action menu title for deleting selected conversations in conversation list -->
     <string name="action_delete">Delete</string>
+    <string name="action_restore">Restore</string>
+    <string name="action_undelete">Undelete</string>
     <!-- Action menu title for archiving selected conversations in conversation list -->
     <string name="action_archive">Archive</string>
     <!-- Action menu title for unarchiving selected conversations in conversation list -->
@@ -353,6 +356,7 @@
     <!-- The text of the toast/snack message shown when the selected conversation(s) are deleted.
          Displays the number of conversations deleted -->
     <string name="deleted_toast_message"><xliff:g id="count">%d</xliff:g> deleted</string>
+    <string name="undeleted_toast_message"><xliff:g id="count">%d</xliff:g> restored</string>
     <!-- Title for swipe right to delete preference -->
     <string name="swipe_right_delete_pref_title">Swipe right to delete</string>
     <!-- Summary for swipe right to delete preference -->
@@ -442,6 +446,7 @@
     <string name="settings_activity_title">Settings</string>
     <!-- Title for the archived conversations activity -->
     <string name="archived_activity_title">Archived</string>
+    <string name="deleted_activity_title">Deleted</string>
     <!-- Action title: Close -->
     <string name="action_close">Close</string>
     <!-- Preference category: MMS messaging -->
@@ -462,6 +467,12 @@
     <!-- Title for the preference for whether or not to request/show delivery reports for SMS -->
     <string name="delivery_reports_pref_title">SMS delivery reports</string>
     <string name="delivery_reports_pref_summary">Request a delivery report for each SMS you send</string>
+    <string name="auto_delete_days_pref_title">Recently deleted retention</string>
+    <string name="auto_delete_days_pref_summary">Keep recently deleted messages for %1$d days</string>
+    <string name="auto_delete_immediately_summary">Don\'t keep deleted messages - remove immediately</string>
+    <string name="auto_delete_today">Deleting today</string>
+    <string name="auto_delete_tomorrow">Deleting tomorrow</string>
+    <string name="auto_delete_in_days">Deleting in %1$d days</string>
     <string name="auto_retrieve_mms_pref_title">Auto-retrieve</string>
     <string name="auto_retrieve_mms_pref_summary">Automatically retrieve MMS messages</string>
     <!-- Title for the preference for whether or not to auto-retrieve MMS when roaming -->
@@ -705,6 +716,7 @@
     <string name="conversation_list_empty_text">Once you start a new conversation, you’ll see it listed here</string>
     <!-- String to show in the archived conversation list view when there are no messages. -->
     <string name="archived_conversation_list_empty_text">Archived conversations appear here</string>
+    <string name="deleted_conversation_list_empty_text">Deleted conversations appear here\nAuto-deletes after %1$d days</string>
     <!-- String to show in the conversation list view when we haven't synchronized the SMS database yet -->
     <string name="conversation_list_first_sync_text">Loading conversations&#8230;</string>
 

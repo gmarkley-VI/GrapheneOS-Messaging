@@ -38,6 +38,7 @@ public class MultiSelectActionModeCallback implements Callback {
         void onActionBarDelete(Collection<SelectedConversation> conversations);
         void onActionBarArchive(Iterable<SelectedConversation> conversations,
                 boolean isToArchive);
+        void onActionBarRestore(Collection<SelectedConversation> conversations);
         void onActionBarAddContact(final SelectedConversation conversation);
         void onActionBarBlock(final SelectedConversation conversation);
         void onActionBarHome();
@@ -51,6 +52,7 @@ public class MultiSelectActionModeCallback implements Callback {
         public final CharSequence participantLookupKey;
         public final boolean isGroup;
         public final boolean isArchived;
+        public final boolean isDeleted;
         public final boolean notificationEnabled;
         public SelectedConversation(ConversationListItemData data) {
             conversationId = data.getConversationId();
@@ -60,6 +62,7 @@ public class MultiSelectActionModeCallback implements Callback {
             participantLookupKey = data.getParticipantLookupKey();
             isGroup = data.getIsGroup();
             isArchived = data.getIsArchived();
+            isDeleted = data.getIsDeleted();
             notificationEnabled = data.getNotificationEnabled();
         }
     }
@@ -69,6 +72,7 @@ public class MultiSelectActionModeCallback implements Callback {
     private Listener mListener;
     private MenuItem mArchiveMenuItem;
     private MenuItem mUnarchiveMenuItem;
+    private MenuItem mRestoreMenuItem;
     private MenuItem mAddContactMenuItem;
     private MenuItem mBlockMenuItem;
     private boolean mHasInflated;
@@ -84,6 +88,7 @@ public class MultiSelectActionModeCallback implements Callback {
         actionMode.getMenuInflater().inflate(R.menu.conversation_list_fragment_select_menu, menu);
         mArchiveMenuItem = menu.findItem(R.id.action_archive);
         mUnarchiveMenuItem = menu.findItem(R.id.action_unarchive);
+        mRestoreMenuItem = menu.findItem(R.id.action_restore);
         mAddContactMenuItem = menu.findItem(R.id.action_add_contact);
         mBlockMenuItem = menu.findItem(R.id.action_block);
         mHasInflated = true;
@@ -109,6 +114,10 @@ public class MultiSelectActionModeCallback implements Callback {
         }
         if (itemId == R.id.action_unarchive) {
             mListener.onActionBarArchive(mSelectedConversations.values(), false);
+            return true;
+        }
+        if (itemId == R.id.action_restore) {
+            mListener.onActionBarRestore(mSelectedConversations.values());
             return true;
         }
         if (itemId == R.id.action_add_contact) {
@@ -179,6 +188,7 @@ public class MultiSelectActionModeCallback implements Callback {
 
         boolean hasCurrentlyArchived = false;
         boolean hasCurrentlyUnarchived = false;
+        boolean hasCurrentlyDeleted = false;
         boolean hasCurrentlyOnNotification = false;
         boolean hasCurrentlyOffNotification = false;
         final Iterable<SelectedConversation> conversations = mSelectedConversations.values();
@@ -189,7 +199,9 @@ public class MultiSelectActionModeCallback implements Callback {
                 hasCurrentlyOffNotification = true;
             }
 
-            if (conversation.isArchived) {
+            if (conversation.isDeleted) {
+                hasCurrentlyDeleted = true;
+            } else if (conversation.isArchived) {
                 hasCurrentlyArchived = true;
             } else {
                 hasCurrentlyUnarchived = true;
@@ -197,12 +209,13 @@ public class MultiSelectActionModeCallback implements Callback {
 
             // If we found at least one of each example we don't need to keep looping.
             if (hasCurrentlyOffNotification && hasCurrentlyOnNotification &&
-                    hasCurrentlyArchived && hasCurrentlyUnarchived) {
+                    hasCurrentlyArchived && hasCurrentlyUnarchived && hasCurrentlyDeleted) {
                 break;
             }
         }
 
-        mArchiveMenuItem.setVisible(hasCurrentlyUnarchived);
-        mUnarchiveMenuItem.setVisible(hasCurrentlyArchived);
+        mArchiveMenuItem.setVisible(hasCurrentlyUnarchived && !hasCurrentlyDeleted);
+        mUnarchiveMenuItem.setVisible(hasCurrentlyArchived && !hasCurrentlyDeleted);
+        mRestoreMenuItem.setVisible(hasCurrentlyDeleted);
     }
 }

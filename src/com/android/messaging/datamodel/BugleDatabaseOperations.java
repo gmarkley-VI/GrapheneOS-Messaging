@@ -616,6 +616,23 @@ public class BugleDatabaseOperations {
         updateConversationRowIfExists(dbWrapper, conversationId, values);
     }
 
+    @DoesNotRunOnMainThread
+    public static void updateConversationDeletedStatusInTransaction(final DatabaseWrapper dbWrapper,
+            final String conversationId, final boolean isDeleted) {
+        Assert.isNotMainThread();
+        Assert.isTrue(dbWrapper.getDatabase().inTransaction());
+        final ContentValues values = new ContentValues();
+        values.put(ConversationColumns.DELETED_STATUS, isDeleted ? 1 : 0);
+        if (isDeleted) {
+            // Set the timestamp when marking as deleted
+            values.put(ConversationColumns.DELETED_TIMESTAMP, System.currentTimeMillis());
+        } else {
+            // Clear the timestamp when undeleting
+            values.put(ConversationColumns.DELETED_TIMESTAMP, 0);
+        }
+        updateConversationRowIfExists(dbWrapper, conversationId, values);
+    }
+
     static void addSnippetTextAndPreviewToContentValues(final MessageData message,
             final boolean showDraft, final ContentValues values) {
         values.put(ConversationColumns.SHOW_DRAFT, showDraft ? 1 : 0);

@@ -49,12 +49,14 @@ import com.android.messaging.datamodel.binding.BindingBase;
 import com.android.messaging.datamodel.data.ConversationListData;
 import com.android.messaging.datamodel.data.ConversationListData.ConversationListDataListener;
 import com.android.messaging.datamodel.data.ConversationListItemData;
+import com.android.messaging.datamodel.data.DeletedConversationListData;
 import com.android.messaging.ui.BugleAnimationTags;
 import com.android.messaging.ui.ListEmptyView;
 import com.android.messaging.ui.SnackBarInteraction;
 import com.android.messaging.ui.UIIntents;
 import com.android.messaging.util.AccessibilityUtil;
 import com.android.messaging.util.Assert;
+import com.android.messaging.util.BuglePrefs;
 import com.android.messaging.util.ImeUtil;
 import com.android.messaging.util.LogUtil;
 import com.android.messaging.util.UiUtils;
@@ -69,11 +71,13 @@ import java.util.List;
 public class ConversationListFragment extends Fragment implements ConversationListDataListener,
         ConversationListItemView.HostInterface {
     private static final String BUNDLE_ARCHIVED_MODE = "archived_mode";
+    private static final String BUNDLE_DELETED_MODE = "deleted_mode";
     private static final String BUNDLE_FORWARD_MESSAGE_MODE = "forward_message_mode";
     private static final boolean VERBOSE = false;
 
     private MenuItem mShowBlockedMenuItem;
     private boolean mArchiveMode;
+    private boolean mDeletedMode;
     private boolean mBlockedAvailable;
     private boolean mForwardMessageMode;
 
@@ -106,6 +110,10 @@ public class ConversationListFragment extends Fragment implements ConversationLi
 
     public static ConversationListFragment createArchivedConversationListFragment() {
         return createConversationListFragment(BUNDLE_ARCHIVED_MODE);
+    }
+
+    public static ConversationListFragment createDeletedConversationListFragment() {
+        return createConversationListFragment(BUNDLE_DELETED_MODE);
     }
 
     public static ConversationListFragment createForwardMessageConversationListFragment() {
@@ -221,7 +229,7 @@ public class ConversationListFragment extends Fragment implements ConversationLi
 
         mStartNewConversationButton = (ImageView) rootView.findViewById(
                 R.id.start_new_conversation_button);
-        if (mArchiveMode) {
+        if (mArchiveMode || mDeletedMode) {
             mStartNewConversationButton.setVisibility(View.GONE);
         } else {
             mStartNewConversationButton.setVisibility(View.VISIBLE);
@@ -253,9 +261,14 @@ public class ConversationListFragment extends Fragment implements ConversationLi
         final Bundle arguments = getArguments();
         if (arguments != null) {
             mArchiveMode = arguments.getBoolean(BUNDLE_ARCHIVED_MODE, false);
+            mDeletedMode = arguments.getBoolean(BUNDLE_DELETED_MODE, false);
             mForwardMessageMode = arguments.getBoolean(BUNDLE_FORWARD_MESSAGE_MODE, false);
         }
-        mListBinding.bind(DataModel.get().createConversationListData(activity, this, mArchiveMode));
+        if (mDeletedMode) {
+            mListBinding.bind(new DeletedConversationListData(activity, this));
+        } else {
+            mListBinding.bind(DataModel.get().createConversationListData(activity, this, mArchiveMode));
+        }
     }
 
 
@@ -365,13 +378,22 @@ public class ConversationListFragment extends Fragment implements ConversationLi
     // Show and hide empty list UI as needed with appropriate text based on view specifics
     private void updateEmptyListUi(final boolean isEmpty) {
         if (isEmpty) {
-            int emptyListText;
+            String emptyListText;
             if (!mListBinding.getData().getHasFirstSyncCompleted()) {
-                emptyListText = R.string.conversation_list_first_sync_text;
+                emptyListText = getString(R.string.conversation_list_first_sync_text);
             } else if (mArchiveMode) {
-                emptyListText = R.string.archived_conversation_list_empty_text;
+                emptyListText = getString(R.string.archived_conversation_list_empty_text);
+            } else if (mDeletedMode) {
+                // Get the retention days from preferences
+                final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
+                final String autoDeleteDaysKey = getContext()
+                        .getString(R.string.auto_delete_days_pref_key);
+                final int defaultDays = getContext().getResources()
+                        .getInteger(R.integer.auto_delete_days_default);
+                final int retentionDays = prefs.getInt(autoDeleteDaysKey, defaultDays);
+                emptyListText = getString(R.string.deleted_conversation_list_empty_text, retentionDays);
             } else {
-                emptyListText = R.string.conversation_list_empty_text;
+                emptyListText = getString(R.string.conversation_list_empty_text);
             }
             mEmptyListMessageView.setTextHint(emptyListText);
             mEmptyListMessageView.setVisibility(View.VISIBLE);
@@ -420,7 +442,7 @@ public class ConversationListFragment extends Fragment implements ConversationLi
     }
 
     public View getHeroElementForTransition() {
-        return mArchiveMode ? null : mStartNewConversationButton;
+        return (mArchiveMode || mDeletedMode) ? null : mStartNewConversationButton;
     }
 
     @VisibleForAnimation

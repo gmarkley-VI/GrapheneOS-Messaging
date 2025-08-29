@@ -36,6 +36,7 @@ import com.android.messaging.datamodel.action.InsertNewMessageAction;
 import com.android.messaging.datamodel.action.RedownloadMmsAction;
 import com.android.messaging.datamodel.action.ResendMessageAction;
 import com.android.messaging.datamodel.action.UpdateConversationArchiveStatusAction;
+import com.android.messaging.datamodel.action.UpdateConversationDeletedStatusAction;
 import com.android.messaging.datamodel.binding.BindableData;
 import com.android.messaging.datamodel.binding.Binding;
 import com.android.messaging.datamodel.binding.BindingBase;
@@ -494,6 +495,10 @@ public class ConversationData extends BindableData {
         return mConversationMetadata.getIsArchived();
     }
 
+    public boolean getIsDeleted() {
+        return mConversationMetadata.getIsDeleted();
+    }
+
     public String getIcon() {
         return mConversationMetadata.getIcon();
     }
@@ -646,6 +651,11 @@ public class ConversationData extends BindableData {
     public void unarchiveConversation(final BindingBase<ConversationData> binding) {
         Assert.isTrue(binding.getData() == this);
         UpdateConversationArchiveStatusAction.unarchiveConversation(mConversationId);
+    }
+
+    public void undeleteConversation(final BindingBase<ConversationData> binding) {
+        Assert.isTrue(binding.getData() == this);
+        UpdateConversationDeletedStatusAction.undeleteConversation(mConversationId);
     }
 
     public ConversationParticipantsData getParticipants() {

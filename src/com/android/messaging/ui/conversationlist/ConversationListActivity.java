@@ -102,6 +102,10 @@ public class ConversationListActivity extends AbstractConversationListActivity {
             onActionBarArchived();
             return true;
         }
+        if (itemId == R.id.action_show_deleted) {
+            onActionBarDeleted();
+            return true;
+        }
         if (itemId == R.id.action_show_blocked_contacts) {
             onActionBarBlockedParticipants();
             return true;
@@ -128,6 +132,10 @@ public class ConversationListActivity extends AbstractConversationListActivity {
 
     public void onActionBarArchived() {
         UIIntents.get().launchArchivedConversationsActivity(this);
+    }
+
+    public void onActionBarDeleted() {
+        UIIntents.get().launchDeletedConversationsActivity(this);
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package com.android.messaging.datamodel.action;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.android.messaging.Factory;
+import com.android.messaging.R;
 import com.android.messaging.datamodel.BugleDatabaseOperations;
 import com.android.messaging.datamodel.BugleNotifications;
 import com.android.messaging.datamodel.DataModel;
@@ -37,6 +39,7 @@ import com.android.messaging.datamodel.MessagingContentProvider;
 import com.android.messaging.sms.MmsUtils;
 import com.android.messaging.ui.conversationlist.MultiSelectActionModeCallback.SelectedConversation;
 import com.android.messaging.util.Assert;
+import com.android.messaging.util.BuglePrefs;
 import com.android.messaging.util.LogUtil;
 import com.android.messaging.util.NotificationChannelUtil;
 import com.android.messaging.widget.WidgetConversationProvider;
@@ -140,6 +143,7 @@ public class DeleteConversationAction extends Action implements Parcelable {
             BugleActionToasts.onFailedToDeleteConversations(failCount);
         }
         if (successCount > 0) {
+            // Note: Toast messages already handle both "moved to deleted" and "permanently deleted"
             BugleActionToasts.onConversationsDeleted(successCount);
         }
 
@@ -158,9 +162,51 @@ public class DeleteConversationAction extends Action implements Parcelable {
         String conversationId = conversation.mId;
         long cutoffTimestamp = conversation.mCutoffTimestamp;
 
-        NotificationChannelUtil.INSTANCE.deleteChannel(conversationId);
-
         if (!TextUtils.isEmpty(conversationId)) {
+            // Check auto-delete preference to determine if we should skip soft delete
+            final BuglePrefs prefs = BuglePrefs.getApplicationPrefs();
+            final Context context = Factory.get().getApplicationContext();
+            final String autoDeleteDaysKey = context.getString(R.string.auto_delete_days_pref_key);
+            // Get default from resources (defined in constants.xml)
+            final int defaultDays = context.getResources().getInteger(R.integer.auto_delete_days_default);
+            // Now stored as integer in preferences
+            final int retentionDays = prefs.getInt(autoDeleteDaysKey, defaultDays);
+            
+            // Check if conversation is already marked as deleted
+            boolean isAlreadyDeleted = false;
+            Cursor cursor = null;
+            try {
+                cursor = db.query(DatabaseHelper.CONVERSATIONS_TABLE,
+                        new String[] { DatabaseHelper.ConversationColumns.DELETED_STATUS },
+                        DatabaseHelper.ConversationColumns._ID + "=?",
+                        new String[] { conversationId },
+                        null, null, null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    isAlreadyDeleted = cursor.getInt(0) == 1;
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+
+            if (!isAlreadyDeleted && retentionDays != 0) {
+                // Conversation is not deleted and retention is not 0, mark it as deleted (soft delete)
+                UpdateConversationDeletedStatusAction.deleteConversation(conversationId);
+                LogUtil.i(TAG, "DeleteConversationAction: Marked conversation as deleted "
+                        + conversationId);
+                return true;
+            }
+            
+            // Either already deleted OR retention is 0 (immediate delete)
+            if (!isAlreadyDeleted && retentionDays == 0) {
+                LogUtil.i(TAG, "DeleteConversationAction: Auto-delete is 0 days, permanently deleting immediately "
+                        + conversationId);
+            }
+            
+            // Permanent deletion logic (for both already deleted and immediate delete cases)
+            NotificationChannelUtil.INSTANCE.deleteChannel(conversationId);
+            
             // First find the thread id for this conversation.
             final long threadId = BugleDatabaseOperations.getThreadId(db, conversationId);
 

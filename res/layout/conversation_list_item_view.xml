@@ -169,11 +169,24 @@
                     android:layout_height="wrap_content"
                     android:paddingBottom="3dp"
                     android:ellipsize="end" />
-                <TextView
-                    android:id="@+id/conversation_timestamp"
-                    style="@style/ConversationListItemViewTextStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:id="@+id/conversation_timestamp"
+                        style="@style/ConversationListItemViewTextStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                    <TextView
+                        android:id="@+id/auto_delete_countdown"
+                        style="@style/ConversationListItemViewTextStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textColor="@color/conversation_list_item_read"
+                        android:visibility="gone" />
+                </LinearLayout>
             </LinearLayout>
 
             <!-- The attachment preview on the right side of the view -->

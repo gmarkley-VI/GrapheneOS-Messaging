@@ -19,6 +19,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.android.messaging.Factory;
+import com.android.messaging.datamodel.data.ConversationListItemData;
 import com.android.messaging.util.Assert;
 import com.android.messaging.util.LogUtil;
 
@@ -48,6 +49,9 @@ public class DatabaseUpgradeHelper {
         if (currentVersion < 2) {
             currentVersion = upgradeToVersion2(db);
         }
+        if (currentVersion < 3) {
+            currentVersion = upgradeToVersion3(db);
+        }
         // Rebuild all the views
         final Context context = Factory.get().getApplicationContext();
         DatabaseHelper.dropAllViews(db);
@@ -59,8 +63,22 @@ public class DatabaseUpgradeHelper {
     private int upgradeToVersion2(final SQLiteDatabase db) {
         db.execSQL("ALTER TABLE " + DatabaseHelper.CONVERSATIONS_TABLE + " ADD COLUMN " +
                 DatabaseHelper.ConversationColumns.IS_ENTERPRISE + " INT DEFAULT(0)");
-        LogUtil.i(TAG, "Ugraded database to version 2");
+        LogUtil.i(TAG, "Upgraded database to version 2");
         return 2;
+    }
+
+    private int upgradeToVersion3(final SQLiteDatabase db) {
+        db.execSQL("ALTER TABLE " + DatabaseHelper.CONVERSATIONS_TABLE + " ADD COLUMN " +
+                DatabaseHelper.ConversationColumns.DELETED_STATUS + " INT DEFAULT(0)");
+        db.execSQL("ALTER TABLE " + DatabaseHelper.CONVERSATIONS_TABLE + " ADD COLUMN " +
+                DatabaseHelper.ConversationColumns.DELETED_TIMESTAMP + " INT DEFAULT(0)");
+        
+        // Drop and recreate the conversation_list_view to include the new columns
+        db.execSQL("DROP VIEW IF EXISTS conversation_list_view");
+        db.execSQL(ConversationListItemData.getConversationListViewSql());
+        
+        LogUtil.i(TAG, "Upgraded database to version 3");
+        return 3;
     }
 
     /**

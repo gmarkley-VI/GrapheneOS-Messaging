@@ -133,6 +133,7 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
     private TextView mSnippetTextView;
     private TextView mSubjectTextView;
     private TextView mTimestampTextView;
+    private TextView mAutoDeleteCountdownView;
     private ContactIconView mContactIconView;
     private ImageView mContactCheckmarkView;
     private ImageView mNotificationBellView;
@@ -159,6 +160,7 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
         mSubjectTextView = (TextView) findViewById(R.id.conversation_subject);
         mWorkProfileIconView = (ImageView) findViewById(R.id.work_profile_icon);
         mTimestampTextView = (TextView) findViewById(R.id.conversation_timestamp);
+        mAutoDeleteCountdownView = (TextView) findViewById(R.id.auto_delete_countdown);
         mContactIconView = (ContactIconView) findViewById(R.id.conversation_icon);
         mContactCheckmarkView = (ImageView) findViewById(R.id.conversation_checkmark);
         mNotificationBellView = (ImageView) findViewById(R.id.conversation_notification_bell);
@@ -417,35 +419,69 @@ public class ConversationListItemView extends FrameLayout implements OnClickList
                 mConversationNameView.getPaint()));
 
         final boolean isDefaultSmsApp = PhoneUtils.getDefault().isDefaultSmsApp();
-        // don't show the error state unless we're the default sms app
-        if (mData.getIsFailedStatus() && isDefaultSmsApp) {
-            mTimestampTextView.setTextColor(resources.getColor(R.color.conversation_list_error));
-            mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
-            int failureMessageId = R.string.message_status_download_failed;
-            if (mData.getIsMessageTypeOutgoing()) {
-                failureMessageId = MmsUtils.mapRawStatusToErrorResourceId(mData.getMessageStatus(),
-                        mData.getMessageRawTelephonyStatus());
+        
+        // Hide timestamp for deleted conversations (we'll show the countdown instead)
+        if (mData.getIsDeleted()) {
+            mTimestampTextView.setVisibility(GONE);
+        } else {
+            mTimestampTextView.setVisibility(VISIBLE);
+            // don't show the error state unless we're the default sms app
+            if (mData.getIsFailedStatus() && isDefaultSmsApp) {
+                mTimestampTextView.setTextColor(resources.getColor(R.color.conversation_list_error));
+                mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
+                int failureMessageId = R.string.message_status_download_failed;
+                if (mData.getIsMessageTypeOutgoing()) {
+                    failureMessageId = MmsUtils.mapRawStatusToErrorResourceId(mData.getMessageStatus(),
+                            mData.getMessageRawTelephonyStatus());
+                }
+                mTimestampTextView.setText(resources.getString(failureMessageId));
+            } else if (mData.getShowDraft()
+                    || mData.getMessageStatus() == MessageData.BUGLE_STATUS_OUTGOING_DRAFT
+                    // also check for unknown status which we get because sometimes the conversation
+                    // row is left with a latest_message_id of a no longer existing message and
+                    // therefore the join values come back as null (or in this case zero).
+                    || mData.getMessageStatus() == MessageData.BUGLE_STATUS_UNKNOWN) {
+                mTimestampTextView.setTextColor(mListItemReadColor);
+                mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
+                mTimestampTextView.setText(resources.getString(
+                        R.string.conversation_list_item_view_draft_message));
+             } else {
+                mTimestampTextView.setTextColor(mListItemReadColor);
+                mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
+                final String formattedTimestamp = mData.getFormattedTimestamp();
+                if (mData.getIsSendRequested()) {
+                    mTimestampTextView.setText(R.string.message_status_sending);
+                } else {
+                    mTimestampTextView.setText(formattedTimestamp);
+                }
             }
-            mTimestampTextView.setText(resources.getString(failureMessageId));
-        } else if (mData.getShowDraft()
-                || mData.getMessageStatus() == MessageData.BUGLE_STATUS_OUTGOING_DRAFT
-                // also check for unknown status which we get because sometimes the conversation
-                // row is left with a latest_message_id of a no longer existing message and
-                // therefore the join values come back as null (or in this case zero).
-                || mData.getMessageStatus() == MessageData.BUGLE_STATUS_UNKNOWN) {
-            mTimestampTextView.setTextColor(mListItemReadColor);
-            mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
-            mTimestampTextView.setText(resources.getString(
-                    R.string.conversation_list_item_view_draft_message));
-         } else {
-            mTimestampTextView.setTextColor(mListItemReadColor);
-            mTimestampTextView.setTypeface(mListItemReadTypeface, typefaceStyle);
-            final String formattedTimestamp = mData.getFormattedTimestamp();
-            if (mData.getIsSendRequested()) {
-                mTimestampTextView.setText(R.string.message_status_sending);
+        }
+        
+        // Show auto-delete countdown for deleted conversations
+        if (mData.getIsDeleted() && mAutoDeleteCountdownView != null) {
+            final int daysRemaining = mData.getDaysUntilAutoDelete();
+            if (daysRemaining >= 0) {
+                mAutoDeleteCountdownView.setVisibility(VISIBLE);
+                if (daysRemaining == 0) {
+                    mAutoDeleteCountdownView.setText(resources.getString(
+                            R.string.auto_delete_today));
+                    mAutoDeleteCountdownView.setTextColor(resources.getColor(
+                            R.color.conversation_list_error));
+                } else if (daysRemaining == 1) {
+                    mAutoDeleteCountdownView.setText(resources.getString(
+                            R.string.auto_delete_tomorrow));
+                    mAutoDeleteCountdownView.setTextColor(resources.getColor(
+                            R.color.conversation_list_error));
+                } else {
+                    mAutoDeleteCountdownView.setText(resources.getString(
+                            R.string.auto_delete_in_days, daysRemaining));
+                    mAutoDeleteCountdownView.setTextColor(mListItemReadColor);
+                }
             } else {
-                mTimestampTextView.setText(formattedTimestamp);
+                mAutoDeleteCountdownView.setVisibility(GONE);
             }
+        } else if (mAutoDeleteCountdownView != null) {
+            mAutoDeleteCountdownView.setVisibility(GONE);
         }
 
         final boolean isSelected = mHostInterface.isConversationSelected(mData.getConversationId());

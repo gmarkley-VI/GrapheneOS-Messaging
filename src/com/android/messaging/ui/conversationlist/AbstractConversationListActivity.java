@@ -29,6 +29,7 @@ import android.view.View;
 import com.android.messaging.R;
 import com.android.messaging.datamodel.action.DeleteConversationAction;
 import com.android.messaging.datamodel.action.UpdateConversationArchiveStatusAction;
+import com.android.messaging.datamodel.action.UpdateConversationDeletedStatusAction;
 import com.android.messaging.datamodel.action.UpdateDestinationBlockedAction;
 import com.android.messaging.datamodel.data.ConversationListData;
 import com.android.messaging.datamodel.data.ConversationListItemData;
@@ -176,6 +177,32 @@ public abstract class AbstractConversationListActivity  extends BugleActionBarAc
 
         final int textId =
                 isToArchive ? R.string.archived_toast_message : R.string.unarchived_toast_message;
+        final String message = getResources().getString(textId, conversationIds.size());
+        UiUtils.showSnackBar(this, findViewById(android.R.id.list), message, undoRunnable,
+                SnackBar.Action.SNACK_BAR_UNDO,
+                mConversationListFragment.getSnackBarInteractions());
+        exitMultiSelectState();
+    }
+
+    @Override
+    public void onActionBarRestore(final Collection<SelectedConversation> conversations) {
+        final ArrayList<String> conversationIds = new ArrayList<String>();
+        for (final SelectedConversation conversation : conversations) {
+            final String conversationId = conversation.conversationId;
+            conversationIds.add(conversationId);
+            UpdateConversationDeletedStatusAction.undeleteConversation(conversationId);
+        }
+
+        final Runnable undoRunnable = new Runnable() {
+            @Override
+            public void run() {
+                for (final String conversationId : conversationIds) {
+                    UpdateConversationDeletedStatusAction.deleteConversation(conversationId);
+                }
+            }
+        };
+
+        final int textId = R.string.undeleted_toast_message;
         final String message = getResources().getString(textId, conversationIds.size());
         UiUtils.showSnackBar(this, findViewById(android.R.id.list), message, undoRunnable,
                 SnackBar.Action.SNACK_BAR_UNDO,
