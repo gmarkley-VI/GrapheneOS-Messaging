@@ -16,10 +16,10 @@ android {
     compileSdk = 36
     buildToolsVersion = "36.0.0"
 
-    namespace = "com.android.messaging.new"
+    namespace = "com.android.messaging.vi"
 
     defaultConfig {
-        applicationId = "com.android.messaging.new"
+        applicationId = "com.android.messaging.vi"
         versionCode = 601
         versionName = "0.6.1"
         minSdk = 35
@@ -84,7 +84,7 @@ android {
 
         getByName("debug") {
             applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "Messaging New (Debug)")
+            resValue("string", "app_name", "VI Messaging (Debug)")
         }
     }
 

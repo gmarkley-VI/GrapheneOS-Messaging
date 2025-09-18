@@ -1,6 +1,6 @@
-# GrapheneOS Messaging - Enhanced Fork
+# VI Messaging
 
-A privacy-focused fork of GrapheneOS Messaging with enhanced conversation management features.
+A privacy-focused fork of GrapheneOS Messaging with enhanced conversation management features. Named "VI Messaging" to distinguish it from the original app and allow side-by-side installation.
 
 ## Features
 
