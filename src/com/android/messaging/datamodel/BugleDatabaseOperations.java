@@ -558,7 +558,7 @@ public class BugleDatabaseOperations {
     @DoesNotRunOnMainThread
     public static void updateConversationMetadataInTransaction(final DatabaseWrapper dbWrapper,
             final String conversationId, final String messageId, final long latestTimestamp,
-            final boolean keepArchived, final String smsServiceCenter,
+            final boolean preserveSpecialStatus, final String smsServiceCenter,
             final boolean shouldAutoSwitchSelfId) {
         Assert.isNotMainThread();
         Assert.isTrue(dbWrapper.getDatabase().inTransaction());
@@ -570,10 +570,12 @@ public class BugleDatabaseOperations {
             values.put(ConversationColumns.SMS_SERVICE_CENTER, smsServiceCenter);
         }
 
-        // When the conversation gets updated with new messages, unarchive the conversation unless
-        // the sender is blocked, or we have been told to keep it archived.
-        if (!keepArchived) {
+        // When the conversation gets updated with new messages, unarchive and undelete
+        // the conversation unless the sender is blocked or we need to preserve its special status.
+        if (!preserveSpecialStatus) {
             values.put(ConversationColumns.ARCHIVE_STATUS, 0);
+            values.put(ConversationColumns.DELETED_STATUS, 0);
+            values.put(ConversationColumns.DELETED_TIMESTAMP, 0);
         }
 
         final MessageData message = readMessage(dbWrapper, messageId);
@@ -599,10 +601,10 @@ public class BugleDatabaseOperations {
     @DoesNotRunOnMainThread
     public static void updateConversationMetadataInTransaction(final DatabaseWrapper db,
             final String conversationId, final String messageId, final long latestTimestamp,
-            final boolean keepArchived, final boolean shouldAutoSwitchSelfId) {
+            final boolean preserveSpecialStatus, final boolean shouldAutoSwitchSelfId) {
         Assert.isNotMainThread();
         updateConversationMetadataInTransaction(
-                db, conversationId, messageId, latestTimestamp, keepArchived, null,
+                db, conversationId, messageId, latestTimestamp, preserveSpecialStatus, null,
                 shouldAutoSwitchSelfId);
     }
 
@@ -614,6 +616,28 @@ public class BugleDatabaseOperations {
         final ContentValues values = new ContentValues();
         values.put(ConversationColumns.ARCHIVE_STATUS, isArchived ? 1 : 0);
         updateConversationRowIfExists(dbWrapper, conversationId, values);
+    }
+
+    @DoesNotRunOnMainThread
+    public static boolean isConversationDeleted(final DatabaseWrapper dbWrapper,
+            final String conversationId) {
+        Assert.isNotMainThread();
+        Cursor cursor = null;
+        try {
+            cursor = dbWrapper.query(DatabaseHelper.CONVERSATIONS_TABLE,
+                    new String[] { ConversationColumns.DELETED_STATUS },
+                    ConversationColumns._ID + "=?",
+                    new String[] { conversationId },
+                    null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getInt(0) == 1;
+            }
+            return false;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
     }
 
     @DoesNotRunOnMainThread
@@ -1340,7 +1364,7 @@ public class BugleDatabaseOperations {
     @DoesNotRunOnMainThread
     public static void refreshConversationMetadataInTransaction(final DatabaseWrapper dbWrapper,
             final String conversationId, final boolean shouldAutoSwitchSelfId,
-            boolean keepArchived) {
+            boolean preserveSpecialStatus) {
         Assert.isNotMainThread();
         Assert.isTrue(dbWrapper.getDatabase().inTransaction());
         Cursor cursor = null;
@@ -1360,7 +1384,7 @@ public class BugleDatabaseOperations {
                 final String senderParticipantId = cursor.getString(2);
                 final boolean senderBlocked = isBlockedParticipant(dbWrapper, senderParticipantId);
                 updateConversationMetadataInTransaction(dbWrapper, conversationId,
-                        latestMessageId, latestMessageTimestamp, senderBlocked || keepArchived,
+                        latestMessageId, latestMessageTimestamp, senderBlocked || preserveSpecialStatus,
                         shouldAutoSwitchSelfId);
             }
         } finally {
@@ -1377,12 +1401,12 @@ public class BugleDatabaseOperations {
      * @param messageId      message that is leaving the conversation
      * @param shouldAutoSwitchSelfId should we try to auto-switch the conversation's self-id as a
      *        result of this call when we see a new latest message?
-     * @param keepArchived   should we keep the conversation archived despite refresh
+     * @param preserveSpecialStatus   should we preserve the conversation's special status (archived/deleted) despite refresh
      */
     @DoesNotRunOnMainThread
     public static void maybeRefreshConversationMetadataInTransaction(
             final DatabaseWrapper dbWrapper, final String conversationId, final String messageId,
-            final boolean shouldAutoSwitchSelfId, final boolean keepArchived) {
+            final boolean shouldAutoSwitchSelfId, final boolean preserveSpecialStatus) {
         Assert.isNotMainThread();
         boolean refresh = true;
         if (!TextUtils.isEmpty(messageId)) {
@@ -1408,7 +1432,7 @@ public class BugleDatabaseOperations {
         if (refresh) {
             // TODO: I think it is okay to delete the conversation if it is empty...
             refreshConversationMetadataInTransaction(dbWrapper, conversationId,
-                    shouldAutoSwitchSelfId, keepArchived);
+                    shouldAutoSwitchSelfId, preserveSpecialStatus);
         }
     }
 
@@ -1463,12 +1487,12 @@ public class BugleDatabaseOperations {
      * @param conversationId conversation to modify
      * @param shouldAutoSwitchSelfId should we try to auto-switch the conversation's self-id as a
      *                               result of this call when we see a new latest message?
-     * @param keepArchived if the conversation should be kept archived
+     * @param preserveSpecialStatus if the conversation's special status should be preserved
      */
     @DoesNotRunOnMainThread
     public static void maybeRefreshConversationMetadataInTransaction(
             final DatabaseWrapper dbWrapper, final String conversationId,
-            final boolean shouldAutoSwitchSelfId, boolean keepArchived) {
+            final boolean shouldAutoSwitchSelfId, boolean preserveSpecialStatus) {
         Assert.isNotMainThread();
         String currentLatestMessageId = null;
         String latestMessageId = null;
@@ -1487,7 +1511,7 @@ public class BugleDatabaseOperations {
         if (TextUtils.isEmpty(currentLatestMessageId) ||
                 !TextUtils.equals(currentLatestMessageId, latestMessageId)) {
             refreshConversationMetadataInTransaction(dbWrapper, conversationId,
-                    shouldAutoSwitchSelfId, keepArchived);
+                    shouldAutoSwitchSelfId, preserveSpecialStatus);
         }
     }
 
