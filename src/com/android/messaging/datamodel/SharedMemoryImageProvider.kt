@@ -6,7 +6,7 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.os.SharedMemory
 import android.system.OsConstants
-import com.android.messaging.BuildConfig
+import com.android.messaging.vi.BuildConfig
 import com.android.messaging.datamodel.media.MediaResourceManager
 import com.android.messaging.datamodel.media.UriImageRequestDescriptor
 import com.android.messaging.util.ContentType

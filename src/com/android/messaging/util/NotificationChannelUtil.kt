@@ -8,7 +8,7 @@ import android.media.AudioAttributes
 import android.net.Uri
 import androidx.core.content.pm.ShortcutManagerCompat
 import com.android.messaging.Factory
-import com.android.messaging.R
+import com.android.messaging.vi.R
 
 object NotificationChannelUtil {
     const val INCOMING_MESSAGES = "Conversations"
