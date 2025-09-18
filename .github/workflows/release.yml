@@ -121,11 +121,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update version file
+      - name: Update version files
         run: |
-          echo "${{ steps.new_version.outputs.NEW_VERSION }}" > version.txt
+          NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
+
+          # Update version.txt
+          echo "$NEW_VERSION" > version.txt
+
+          # Calculate versionCode from semantic version
+          IFS='.' read -ra VERSION_PARTS <<< "$NEW_VERSION"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
+          VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+
+          # Update build.gradle.kts
+          sed -i "s/versionCode = .*/versionCode = $VERSION_CODE/" app/build.gradle.kts
+          sed -i "s/versionName = .*/versionName = \"$NEW_VERSION\"/" app/build.gradle.kts
+
+          # Commit changes
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add version.txt
-          git commit -m "Bump version to ${{ steps.new_version.outputs.NEW_VERSION }} [skip ci]"
+          git add version.txt app/build.gradle.kts
+          git commit -m "Bump version to $NEW_VERSION [skip ci]"
           git push

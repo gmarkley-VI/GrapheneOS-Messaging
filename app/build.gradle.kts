@@ -19,8 +19,9 @@ android {
     namespace = "com.android.messaging"
 
     defaultConfig {
-        versionCode = 20000000 + 13
-        versionName = "13"
+        applicationId = "com.android.messaging.new"
+        versionCode = 500  // 0.5.0 -> 500 (major*10000 + minor*100 + patch)
+        versionName = "0.5.0"
         minSdk = 35
         targetSdk = 35
 
