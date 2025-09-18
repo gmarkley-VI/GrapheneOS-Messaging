@@ -17,6 +17,7 @@ jobs:
           submodules: true
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -80,6 +81,26 @@ jobs:
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "New version: $NEW_VERSION"
 
+      - name: Update version files before build
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
+
+          # Update version.txt
+          echo "$NEW_VERSION" > version.txt
+
+          # Calculate versionCode from semantic version
+          IFS='.' read -ra VERSION_PARTS <<< "$NEW_VERSION"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
+          VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
+
+          # Update build.gradle.kts
+          sed -i "s/versionCode = .*/versionCode = $VERSION_CODE/" app/build.gradle.kts
+          sed -i "s/versionName = .*/versionName = \"$NEW_VERSION\"/" app/build.gradle.kts
+
+          echo "Updated to version $NEW_VERSION (code: $VERSION_CODE)"
+
       - name: Build Release APK
         run: |
           ./gradlew assembleRelease --no-daemon
@@ -121,27 +142,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update version files
+      - name: Commit version updates
         run: |
           NEW_VERSION="${{ steps.new_version.outputs.NEW_VERSION }}"
 
-          # Update version.txt
-          echo "$NEW_VERSION" > version.txt
+          # Configure git
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
 
-          # Calculate versionCode from semantic version
-          IFS='.' read -ra VERSION_PARTS <<< "$NEW_VERSION"
-          MAJOR="${VERSION_PARTS[0]}"
-          MINOR="${VERSION_PARTS[1]}"
-          PATCH="${VERSION_PARTS[2]}"
-          VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
-
-          # Update build.gradle.kts
-          sed -i "s/versionCode = .*/versionCode = $VERSION_CODE/" app/build.gradle.kts
-          sed -i "s/versionName = .*/versionName = \"$NEW_VERSION\"/" app/build.gradle.kts
-
-          # Commit changes
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          # Add and commit the version changes
           git add version.txt app/build.gradle.kts
-          git commit -m "Bump version to $NEW_VERSION [skip ci]"
-          git push
+          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+          git push origin HEAD:main

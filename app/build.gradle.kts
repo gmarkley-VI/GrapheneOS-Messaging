@@ -20,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.android.messaging.new"
-        versionCode = 500  // 0.5.0 -> 500 (major*10000 + minor*100 + patch)
-        versionName = "0.5.0"
+        versionCode = 600  // 0.6.0 -> 600 (major*10000 + minor*100 + patch)
+        versionName = "0.6.0"
         minSdk = 35
         targetSdk = 35
 
