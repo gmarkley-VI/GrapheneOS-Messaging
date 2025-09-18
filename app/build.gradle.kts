@@ -16,7 +16,7 @@ android {
     compileSdk = 36
     buildToolsVersion = "36.0.0"
 
-    namespace = "com.android.messaging"
+    namespace = "com.android.messaging.new"
 
     defaultConfig {
         applicationId = "com.android.messaging.new"
@@ -76,12 +76,15 @@ android {
                     "../proguard.flags", "../proguard-release.flags")
             if (useKeystoreProperties) {
                 signingConfig = signingConfigs.getByName("release")
+            } else {
+                // Use debug signing if no release keystore is available
+                signingConfig = signingConfigs.getByName("debug")
             }
         }
 
         getByName("debug") {
             applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "Messaging d")
+            resValue("string", "app_name", "Messaging New (Debug)")
         }
     }
 
